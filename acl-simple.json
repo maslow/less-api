@@ -1,0 +1,28 @@
+{
+    "categories": {
+        ".read": true,
+        ".update": "$admin === true",
+        ".add": "$admin === true",
+        ".remove": "$admin === true"
+    },
+    "articles": {
+        ".read": true,
+        ".update": {
+            "condition": "$admin === true",
+            "data.valid": { 
+                "title": {"length": [1, 64]},
+                "content": {"length": [1, 20480]}
+            },
+            "data.fields": {"allow": ["title", "content"]}
+        },
+        ".add": {
+            "condition": "$admin === true",
+            "data.valid": { 
+                "title": {"length": [1, 64]},
+                "content": {"length": [1, 20480]}
+            },
+            "data.fields": {"allow": ["title", "content"]}
+        },
+        ".remove": "$admin === true"
+    }
+}

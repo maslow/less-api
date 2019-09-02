@@ -1,0 +1,43 @@
+{
+    "articles": {
+        ".read": true,
+        ".update": {
+            "condition": "$userid && $userid === $query.createdBy",
+            "data.valid": { 
+                "title": {"length": [1, 64]},
+                "content": {"length": [1, 20480]}
+            },
+            "data.fields": {"allow": ["title", "content"]}
+        },
+        ".add": {
+            "condition": "$userid && $data.createdBy === $userid",
+            "data.valid": { 
+                "title": {"length": [1, 64]},
+                "content": {"length": [1, 20480]}
+            },
+            "data.fields": {"allow": ["title", "content"]},
+            "rateLimit": {"identifier": "$userid", "times":3, "duration": 300, "msg": "每10分钟限调3次"}
+        },
+        ".remove": "$userid === $query.createBy || $admin === true"
+    },
+    "messages": {
+        ".read": "$userid && ($userid === $query.receiver || $userid === $query.sender)",
+        ".update": {
+            "condition": "$userid && $userid === $query.receiver",
+            "data.valid": { 
+                "read": {"in": [true, false]}
+            },
+            "data.fields": {"allow": ["read"]}
+        },
+        ".add": {
+            "condition": "$userid && $userid === $query.sender",
+            "data.validate": { 
+                "content": {"length": [1, 20480]},
+                "receiver": {"exist": {"collection": "users", "field": "_id"}}
+            },
+            "data.fields": {"allow": ["sender", "receiver", "content"]},
+            "rateLimit": {"identifier": "$userid", "times":3, "duration": 300, "msg": "每10分钟限调3次"}
+        },
+        ".remove": false
+    }
+}

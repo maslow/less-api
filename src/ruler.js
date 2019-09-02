@@ -6,7 +6,7 @@ class Ruler {
     }
 
     load(){
-
+        return false
     }
     
     async validate(){

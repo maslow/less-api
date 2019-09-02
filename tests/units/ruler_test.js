@@ -114,4 +114,45 @@ describe('class Ruler validate() - condition', () => {
     })
 })
 
-d
+
+describe('class Ruler validate()', () => {
+    it('multiple rules', async () => {
+        const rules = {
+            categories: {
+                ".read": [
+                    { condition: "$admin === true" },
+                    { condition: "$product === true"},
+                    { condition: "$market === true"}
+                ]
+            }
+        }
+        const ruler = new Ruler()
+        ruler.load(rules)
+        const query = {}
+        const data = {}
+        const options = {}
+        let injections = {
+            $admin: true
+        }
+        let r = await ruler.validate('categories', 'database.queryDocument', query, data, options, injections)
+        assert.ok(r)
+
+        injections = {
+            $product: true
+        }
+        r = await ruler.validate('categories', 'database.queryDocument', query, data, options, injections)
+        assert.ok(r)
+
+        injections = {
+            $market: true
+        }
+        r = await ruler.validate('categories', 'database.queryDocument', query, data, options, injections)
+        assert.ok(r)
+
+        injections = {
+            $other: true
+        }
+        r = await ruler.validate('categories', 'database.queryDocument', query, data, options, injections)
+        assert.ok(!r)
+    })
+})

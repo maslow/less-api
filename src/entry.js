@@ -1,6 +1,5 @@
 const Ruler = require('./ruler')
 const Accessor = require('./accessor')
-const buildinValidators = require('./validators')
 
 class Entry {
   constructor (config) {
@@ -10,7 +9,6 @@ class Entry {
   }
 
   init () {
-    this._loadBuiltinValidators()
   }
 
   loadRules (rules) {
@@ -22,17 +20,11 @@ class Entry {
   }
 
   async validate (collection, action, query, data, options, injections) {
-    return await this._ruler.validate(collection, action, injections)
+    return await this._ruler.validate(collection, action, query, data, options, injections)
   }
 
   registerValidator (name, handler) {
     this._ruler.registerValidator(name, handler)
-  }
-
-  _loadBuiltinValidators () {
-    for (let name in buildinValidators) {
-      this.registerValidator(name, buildinValidators[name])
-    }
   }
 }
 

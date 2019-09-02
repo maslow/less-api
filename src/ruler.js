@@ -3,10 +3,12 @@ class Ruler {
     constructor(entry){
         this._entry = entry
         this._validators = {}
+        this._rules = null
     }
 
-    load(){
-        return false
+    load(rules){
+        this._rules = rules
+        return true
     }
     
     async validate(){

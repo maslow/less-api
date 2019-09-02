@@ -6,7 +6,7 @@
 ### 使用示例
 
 ```js
-const express = require('exrepss')
+const express = require('express')
 const oneapi = require('oneapi')
 const rules = require('./rules.json')
 
@@ -19,7 +19,7 @@ app.post('/entry', async (req, res) => {
     const { role, userId, appid } = parseToken(req.body.token)
     const { collection, action, query, data, options } = req.body
 
-    const injections = {  
+    const injections = {
         $role: role,
         $userid: userId,
         $appid: appid,
@@ -30,14 +30,14 @@ app.post('/entry', async (req, res) => {
   
     const { valid } = await entry.validate(collection, action, injections)
     if(!valid){
-        return res.status(403).send('permission denied');
+        return res.status(403).send('permission denied')
     }
 
     const params = { collection, query, data, options }
     const result = await entry.execute(params)  
 
-    return result
-}
+    return res.send({result})
+})
 
 // other apis
 app.post('/payment', (req, res) => {

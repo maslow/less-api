@@ -1,7 +1,7 @@
 {
-  "name": "noapi",
+  "name": "oneapi",
   "version": "1.0.0",
-  "description": "```js const express = require('exrepss') const app = new express()",
+  "description": "通过一套通过访问控制语言配置服务端数据访问 API.",
   "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -7,11 +7,11 @@
 
 ```js
 const express = require('exrepss')
-const noapi = require('noapi')
+const oneapi = require('oneapi')
 const rules = require('./rules.json')
 
 const app = new express()
-const entry = new noapi.Entry(config)
+const entry = new oneapi.Entry(config)
 entry.loadRules(rules)
 
 // one api entry
@@ -133,3 +133,11 @@ app.listen(8080)
     }
 }
 ```
+
+### doing & todo
+
+- 实现当前确定的「数据访问规则」
+- 提供 JS 版客户端 SDK: oneapi-client-js
+- 实现 `change watch`, 客户端可订阅数据变更通知，服务端通过 websocket 向客户端实时推送数据变更
+- 提供 Android & iOS 客户端 SDK
+- 支持 MySQL 等关系型数据库

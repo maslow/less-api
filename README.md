@@ -20,30 +20,30 @@ const db = {
   connSettings: { }
 }
 const entry = new oneapi.Entry({ db })
+entry.init()
 entry.loadRules(rules)
 
-// one api entry
 app.post('/entry', async (req, res) => {
-    const { role, userId, appid } = parseToken(req.headers['Authorization'])
-    const { collection, action, query, data, options } = req.body
+  const { role, userId } = parseToken(req.headers['Authorization'])
 
-    const injections = {
-        $role: role,
-        $userid: userId,
-        $appid: appid,
-        $query: query,
-        $data: data
-    }
-  
-    const matched = await entry.validate(collection, action, query, data, options, injections)
-    if(!matched){
-        return res.status(403).send('permission denied')
-    }
+  const { action } = req.body
+  const params = entry.parseParams(action, req.body)
 
-    const params = { collection, query, data, options }
-    const result = await entry.execute(params)  
+  const injections = {
+    $role: role,
+    $userid: userId,
+    $query: params.query,
+    $data: params.data
+  }
 
-    return res.send(result)
+  const matched = await entry.validate({...params, injections})
+  if(!matched){
+      return res.status(403).send('permission denied')
+  }
+
+  const result = await entry.execute(params)
+
+  return res.send(result)
 })
 
 // other apis

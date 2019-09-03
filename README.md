@@ -20,6 +20,7 @@ const db = {
   connSettings: { }
 }
 const entry = new oneapi.Entry({ db })
+entry.loadRules(rules)
 
 // one api entry
 app.post('/entry', async (req, res) => {

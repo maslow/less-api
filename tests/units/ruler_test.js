@@ -2,36 +2,6 @@ const assert = require('assert')
 const { Entry, Ruler, Accessor } = require('../../src/index')
 const buildins = require('../../src/validators')
 
-const valid_rules = {
-    "categories": {
-        ".read": true,
-        ".update": "$admin === true",
-        ".add": "$admin === true",
-        ".remove": "$admin === true"
-    },
-    "articles": {
-        ".read": true,
-        ".update": {
-            "condition": "$admin === true",
-            "data.valid": { 
-                "title": {"length": [1, 64]},
-                "content": {"length": [1, 20480]}
-            },
-            "data.fields": {"allow": ["title", "content"]}
-        },
-        ".add": {
-            "condition": "$admin === true",
-            "data.valid": { 
-                "title": {"length": [1, 64]},
-                "content": {"length": [1, 20480]}
-            },
-            "data.fields": {"allow": ["title", "content"]}
-        },
-        ".remove": "$admin === true"
-    }
-}
-
-
 describe('class Ruler', () => {
 
     it('_loadBuiltinValidators() ok', () => {
@@ -41,10 +11,20 @@ describe('class Ruler', () => {
 
         assert.equal(Object.keys(buildins).length, Object.keys(validtrs).length)
         for (let name in buildins) {
-        const _names = Object.keys(validtrs)
-        assert.ok(_names.includes(name))
-        assert.equal(buildins[name], validtrs[name])
+            const _names = Object.keys(validtrs)
+            assert.ok(_names.includes(name))
+            assert.equal(buildins[name], validtrs[name])
         }
+    })
+
+    it('registerValidator() ok', () => {
+        const ruler = new Ruler()
+        ruler.registerValidator('test', (config, context) => {
+            return true
+        })
+        assert.ok(ruler._validators['test'])
+        assert.ok(ruler._validators['test'] instanceof Function)
+        assert.ok(ruler._validators['test']())
     })
 })
 

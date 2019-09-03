@@ -1,6 +1,7 @@
 const assert = require('assert')
-const { Entry, Ruler, Accessor } = require('../../src/index')
+const {  Ruler } = require('../../src/index')
 const buildins = require('../../src/validators')
+const Processor = require('../../src/processor')
 
 describe('class Ruler', () => {
 
@@ -25,6 +26,44 @@ describe('class Ruler', () => {
         assert.ok(ruler._validators['test'])
         assert.ok(ruler._validators['test'] instanceof Function)
         assert.ok(ruler._validators['test']())
+    })
+
+    it('load() ok', () => {
+        const rules = {
+            categories: {
+                ".read": true,
+                ".update": "false",
+            }
+        }
+        const ruler = new Ruler()
+        ruler.load(rules)
+
+        const r = ruler._rules.categories
+        assert.ok(r)
+        assert.ok(r['.read'])
+        assert.ok(r['.update'])
+        assert.ok(!r['.add'])
+        assert.ok(r['.read'] instanceof Array)
+
+        const v = r['.read'][0]
+        assert.ok(v)
+        assert.ok(v.condition instanceof Processor)
+        assert.equal(v.condition._name, 'condition')
+        assert.equal(v.condition._type, 'validator')
+        assert.equal(v.condition._config, 'true')
+        assert.ok(v.condition._handler instanceof Function)
+    })
+
+    it('load() should throw unknown validator error', () => {
+        const rules = {
+            categories: {
+                ".read": {
+                    'unknown-validator': 'for-test'
+                },
+            }
+        }
+        const ruler = new Ruler()
+        assert.throws(() => ruler.load(rules))
     })
 })
 

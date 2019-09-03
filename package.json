@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@cloudbase/database": "^0.4.1"
+    "@cloudbase/database": "^0.4.1",
+    "mongodb": "^3.3.2"
   },
   "devDependencies": {
     "express": "^4.17.1",

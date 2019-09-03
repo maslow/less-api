@@ -2,21 +2,26 @@ const Ruler = require('./ruler')
 const Accessor = require('./accessor')
 
 class Entry {
-  constructor (config) {
-    this._ruler = new Ruler(this)
-    this._accessor = new Accessor(this, config)
+  constructor ({ db, ruler, accessor }) {
+    this._ruler = ruler || new Ruler(this)
+    this._accessor = accessor || new Accessor(this, db)
+    this._accessor.init()
     this.init()
   }
 
   init () {
   }
 
+  get db(){
+    return this._accessor.db
+  }
+
   loadRules (rules) {
     return this._ruler.load(rules)
   }
 
-  async execute (params) {
-    return await this._accessor.execute(params)
+  async execute ({ collection, action, query, data, options }) {
+    return await this._accessor.execute({ collection, action, query, data, options })
   }
 
   async validate (collection, action, query, data, options, injections) {

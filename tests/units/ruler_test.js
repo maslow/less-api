@@ -42,23 +42,26 @@ describe('class Ruler validate() - condition', () => {
         }
         const ruler = new Ruler()
         ruler.load(rules)
-        const query = {}
-        const data = {}
-        const options = {}
         const injections = {
             $admin: true
         }
-        const r = await ruler.validate('categories', 'database.queryDocument', query, data, options, injections)
+        let params = {
+            collection: 'categories', action: 'database.queryDocument', injections
+        }
+        let r = await ruler.validate(params)
         assert.ok(r, 'condition-boolean error')
 
-        const r1 = await ruler.validate('categories', 'database.updateDocument', query, data, options, injections)
-        assert.ok(r1, 'condition-string error')
+        params.action = 'database.updateDocument'
+        r = await ruler.validate(params)
+        assert.ok(r, 'condition-string error')
 
-        const r2 = await ruler.validate('categories', 'database.addDocument', query, data, options, injections)
-        assert.ok(r2, 'condition-object error')
+        params.action = 'database.addDocument'
+        r = await ruler.validate(params)
+        assert.ok(r, 'condition-object error')
 
-        const r3 = await ruler.validate('categories', 'database.deleteDocument', query, data, options, injections)
-        assert.ok(r3, 'condition-array error')
+        params.action = 'database.deleteDocument'
+        r = await ruler.validate(params)
+        assert.ok(r, 'condition-array error')
     })
 
     it('should reject', async () => {
@@ -74,23 +77,27 @@ describe('class Ruler validate() - condition', () => {
         }
         const ruler = new Ruler()
         ruler.load(rules)
-        const query = {}
-        const data = {}
-        const options = {}
+
         const injections = {
             $admin: false
         }
-        const r = await ruler.validate('categories', 'database.queryDocument', query, data, options, injections)
+        let params = {
+            collection: 'categories', action: 'database.queryDocument', injections
+        }
+        let r = await ruler.validate(params)
         assert.ok(!r, 'condition-boolean error')
 
-        const r1 = await ruler.validate('categories', 'database.updateDocument', query, data, options, injections)
-        assert.ok(!r1, 'condition-string error')
+        params.action = 'database.updateDocument'
+        r = await ruler.validate(params)
+        assert.ok(!r, 'condition-string error')
 
-        const r2 = await ruler.validate('categories', 'database.addDocument', query, data, options, injections)
-        assert.ok(!r2, 'condition-object error')
+        params.action = 'database.addDocument'
+        r = await ruler.validate(params)
+        assert.ok(!r, 'condition-object error')
 
-        const r3 = await ruler.validate('categories', 'database.deleteDocument', query, data, options, injections)
-        assert.ok(!r3, 'condition-array error')
+        params.action = 'database.deleteDocument'
+        r = await ruler.validate(params)
+        assert.ok(!r, 'condition-array error')
     })
 })
 
@@ -108,31 +115,32 @@ describe('class Ruler validate()', () => {
         }
         const ruler = new Ruler()
         ruler.load(rules)
-        const query = {}
-        const data = {}
-        const options = {}
+
         let injections = {
             $admin: true
         }
-        let r = await ruler.validate('categories', 'database.queryDocument', query, data, options, injections)
+
+        let params = { collection: 'categories', action: 'database.queryDocument', injections}
+        let r = await ruler.validate(params)
         assert.ok(r)
 
-        injections = {
+        params.injections = {
             $product: true
         }
-        r = await ruler.validate('categories', 'database.queryDocument', query, data, options, injections)
+        r = await ruler.validate(params)
         assert.ok(r)
 
-        injections = {
+        params.injections = {
             $market: true
         }
-        r = await ruler.validate('categories', 'database.queryDocument', query, data, options, injections)
+
+        r = await ruler.validate(params)
         assert.ok(r)
 
-        injections = {
+        params.injections = {
             $other: true
         }
-        r = await ruler.validate('categories', 'database.queryDocument', query, data, options, injections)
+        r = await ruler.validate(params)
         assert.ok(!r)
     })
 })

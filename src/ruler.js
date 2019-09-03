@@ -2,13 +2,7 @@ const assert = require('assert')
 const util = require('util')
 const buildinValidators = require('./validators')
 const Processor = require('./processor')
-
-const actionMaps = {
-  'database.queryDocument': '.read',
-  'database.updateDocument': '.update',
-  'database.addDocument': '.add',
-  'database.deleteDocument': '.remove'
-}
+const { actionMap } = require('./types')
 
 class Ruler {
   constructor (entry) {
@@ -68,26 +62,19 @@ class Ruler {
     return data
   }
 
-  async validate (collection, action, query, data, options, injections) {
+  async validate (params) {
+    const { collection, action } = params
+    
     if (!this.collections.includes(collection)) return false
+    if (!Object.keys(actionMap).includes(action)) return false
 
-    if (!Object.keys(actionMaps).includes(action)) return false
-
-    const permissionName = actionMaps[action]
+    const permissionName = actionMap[action]
     const prules = this._rules[collection][permissionName]
 
     if (!prules) return false
 
     // matching permission rules
-    const context = {
-        ruler: this,
-        collection,
-        action,
-        query,
-        data,
-        options,
-        injections
-    }
+    const context = {ruler: this, ...params }
 
     let matched = null
     for (let validtrs of prules) {

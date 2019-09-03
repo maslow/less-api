@@ -5,6 +5,8 @@
 
 ### 使用示例
 
+#### 服务端代码示例
+
 ```js
 const express = require('express')
 const oneapi = require('oneapi')
@@ -16,7 +18,7 @@ entry.loadRules(rules)
 
 // one api entry
 app.post('/entry', async (req, res) => {
-    const { role, userId, appid } = parseToken(req.body.token)
+    const { role, userId, appid } = parseToken(req.headers['Authorization'])
     const { collection, action, query, data, options } = req.body
 
     const injections = {
@@ -24,19 +26,18 @@ app.post('/entry', async (req, res) => {
         $userid: userId,
         $appid: appid,
         $query: query,
-        $data: data,
-        $queryOptions: options
+        $data: data
     }
   
-    const { valid } = await entry.validate(collection, action, injections)
-    if(!valid){
+    const matched = await entry.validate(collection, action, query, data, options, injections)
+    if(!matched){
         return res.status(403).send('permission denied')
     }
 
     const params = { collection, query, data, options }
     const result = await entry.execute(params)  
 
-    return res.send({result})
+    return res.send(result)
 })
 
 // other apis
@@ -51,9 +52,9 @@ app.post('/upload', (req, res) => {
 app.listen(8080)
 ```
 
-### 规则示例
+#### 规则示例
 
-#### 单用户博客示例
+##### 单用户博客示例
 
 ```json
     {
@@ -86,7 +87,7 @@ app.listen(8080)
 }
 ```
 
-#### 多用户博客示例
+##### 多用户博客示例
 
 ```json
 {
@@ -132,6 +133,13 @@ app.listen(8080)
         ".remove": false
     }
 }
+```
+
+### 测试
+
+```sh
+    npm install
+    npm run test
 ```
 
 ### doing & todo

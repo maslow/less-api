@@ -8,7 +8,7 @@ entry.loadRules(rules)
 
 // one api entry
 app.post('/entry', async (req, res) => {
-  const { role, userId, appid } = parseToken(req.body.token)
+  const { role, userId, appid } = parseToken(req.headers['Authorization'])
   const { collection, action, query, data, options } = req.body
 
   const injections = {
@@ -16,27 +16,18 @@ app.post('/entry', async (req, res) => {
     $userid: userId,
     $appid: appid,
     $query: query,
-    $data: data,
-    $queryOptions: options
+    $data: data
   }
 
-  const { valid } = await entry.validate(
-    collection,
-    action,
-    query,
-    data,
-    options,
-    injections
-  )
-
-  if (!valid) {
-    return res.status(403).send('permission denied')
+  const matched = await entry.validate(collection, action, query, data, options, injections)
+  if(!matched){
+      return res.status(403).send('permission denied')
   }
 
   const params = { collection, action, query, data, options }
   const result = await entry.execute(params)
 
-  return res.send({ result })
+  return res.send(result)
 })
 
 // other apis

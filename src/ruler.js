@@ -1,5 +1,7 @@
 const assert = require('assert')
+const util = require('util')
 const buildinValidators = require('./validators')
+const Processor = require('./processor')
 
 const actionMaps = {
   'database.queryDocument': '.read',
@@ -26,21 +28,26 @@ class Ruler {
   }
 
   load (rules) {
-    this._rules = rules
+    assert.equal(typeof rules, 'object', "invalid 'rules'")
+
+    const data = {}
+    for(let collection in rules) {
+        const permissions = rules[collection]        // permissions is an object, like { ".read": ..., '.update': ... }
+        data[collection] = {}
+        Object.keys(permissions).forEach(pn => {
+            data[collection][pn] = this._instantiateValidators(permissions[pn])
+        })
+    }
+    this._rules = data
     return true
   }
 
-  async validate (collection, action, query, data, options, injections) {
-    if (!this.collections.includes(collection)) return false
-
-    if (!Object.keys(actionMaps).includes(action)) return false
-
-    const permission = actionMaps[action]
-    let rules = this._rules[collection][permission]
-    if (!rules) return false
+  _instantiateValidators(permissionRules){
+    assert.notEqual(permissionRules, undefined, 'permissionRules is undefined')
+    let rules = permissionRules
 
     if ([true, false].includes(rules)) {
-        return { condition: rules }
+        rules = [{ condition: `${rules}` }]
     }
 
     // 默认使用 condition validator
@@ -48,7 +55,30 @@ class Ruler {
 
     if (!(rules instanceof Array)) rules = [rules]
 
-    // matching rules
+    const data = rules.map(rule => {
+        const _rule = {}
+        for (let name in rule) {
+            const handler = this._validators[name]
+            const config = rule[name]
+            _rule[name] = new Processor(name, handler, config, 'validator')
+        }
+        return _rule
+    })
+
+    return data
+  }
+
+  async validate (collection, action, query, data, options, injections) {
+    if (!this.collections.includes(collection)) return false
+
+    if (!Object.keys(actionMaps).includes(action)) return false
+
+    const permissionName = actionMaps[action]
+    const prules = this._rules[collection][permissionName]
+
+    if (!prules) return false
+
+    // matching permission rules
     const context = {
         ruler: this,
         collection,
@@ -60,15 +90,15 @@ class Ruler {
     }
 
     let matched = null
-    for (let rule of rules) {
+    for (let validtrs of prules) {
       let result = false
-      for (let name in rule) {
-        result = await this.callValidator(name, rule[name], context)
+      for (let vname in validtrs) {
+        result = await validtrs[vname].run(context)
         if (!result) break
       }
 
       if (result) {
-        matched = rule
+        matched = validtrs
         break
       }
     }
@@ -76,9 +106,6 @@ class Ruler {
     return matched
   }
 
-  async callValidator (name, config, context) {
-    return await this._validators[name](config, context)
-  }
 
   registerValidator (name, handler) {
     assert.ok(name, `register error: name must not be empty`)

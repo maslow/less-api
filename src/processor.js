@@ -9,7 +9,7 @@ const types = {
 class Processor {
     constructor(name, handler, config, type = types.VALIDATOR){
         assert.ok(name, "invalid 'name'")
-        assert.ok(handler instanceof Function, "'handler' must be callable")
+        assert.ok(handler instanceof Function, `${name}'s handler must be callable`)
         assert.ok(config, "invalid 'config'")
         assert.ok(Object.values(types).includes(type), "invalid 'type'")
 

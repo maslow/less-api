@@ -53,6 +53,9 @@ class Ruler {
         const _rule = {}
         for (let name in rule) {
             const handler = this._validators[name]
+            if(!handler){
+              throw new Error(`unknown validator '${name}' in your rules`)
+            }
             const config = rule[name]
             _rule[name] = new Processor(name, handler, config, 'validator')
         }
@@ -64,7 +67,7 @@ class Ruler {
 
   async validate (params) {
     const { collection, action } = params
-    
+
     if (!this.collections.includes(collection)) return false
     if (!Object.keys(actionMap).includes(action)) return false
 

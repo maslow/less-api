@@ -13,7 +13,7 @@
                 "title": {"length": [1, 64]},
                 "content": {"length": [1, 20480]}
             },
-            "data.fields": {"allow": ["title", "content"]}
+            "data.field": {"allow": ["title", "content"]}
         },
         ".add": {
             "condition": "$admin === true",
@@ -21,7 +21,7 @@
                 "title": {"length": [1, 64]},
                 "content": {"length": [1, 20480]}
             },
-            "data.fields": {"allow": ["title", "content"]}
+            "data.field": {"allow": ["title", "content"]}
         },
         ".remove": "$admin === true"
     }

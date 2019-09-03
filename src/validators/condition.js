@@ -1,15 +1,19 @@
 const vm = require('vm')
 
 function ConditionHandler(config, {ruler, collection, action, query, data, options, injections}){
-    let result = false
     try {
-        const script = new vm.Script(config)
+        let script = this._script
+        if(!script) {
+            script = new vm.Script(config)
+            this._script = script
+        }else{
+            console.log({obj: this})
+        }
         const context = {...injections, query, data, options}
-        result = script.runInNewContext(context)
+        return script.runInNewContext(context)
     } catch (error) {
         return false
     }
-    return result
 }
 
 module.exports = ConditionHandler

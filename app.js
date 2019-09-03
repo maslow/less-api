@@ -3,7 +3,14 @@ const oneapi = require('./src/index')
 const rules = require('./examples/rules.json')
 
 const app = new express()
-const entry = new oneapi.Entry({})
+
+// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
+const db = {
+  dbName: 'mydb', 
+  url: 'mongodb://localhost:27017/', 
+  connSettings: { }
+}
+const entry = new oneapi.Entry({ db })
 entry.loadRules(rules)
 
 // one api entry

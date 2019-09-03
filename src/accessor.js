@@ -17,8 +17,7 @@ class Accessor {
         this._entry = entry
         this._dbName = dbName
 
-        this._connSettings = connSettings || {}
-        this._conn = new MongoClient(url, this._connSettings)
+        this._conn = new MongoClient(url, connSettings)
         this._db = null
         this.init()
     }

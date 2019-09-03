@@ -13,8 +13,13 @@ const oneapi = require('oneapi')
 const rules = require('./rules.json')
 
 const app = new express()
-const entry = new oneapi.Entry(config)
-entry.loadRules(rules)
+
+const db = {
+  dbName: 'mydb',
+  url: 'mongodb://localhost:27017/',
+  connSettings: { }
+}
+const entry = new oneapi.Entry({ db })
 
 // one api entry
 app.post('/entry', async (req, res) => {

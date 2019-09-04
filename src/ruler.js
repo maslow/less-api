@@ -21,6 +21,10 @@ class Ruler {
     return Object.keys(this._rules)
   }
 
+  get db() {
+    return this._entry.db
+  }
+
   load (rules) {
     assert.equal(typeof rules, 'object', "invalid 'rules'")
 

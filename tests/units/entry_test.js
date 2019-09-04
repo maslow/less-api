@@ -7,6 +7,7 @@ describe('class Entry', () => {
     const entry = new Entry({ db })
     assert.ok(entry._ruler instanceof Ruler)
     assert.ok(entry._accessor instanceof Accessor)
+    assert.equal(entry._ruler.db, entry.db)
   })
 
   it('parseParams() ok', () => {

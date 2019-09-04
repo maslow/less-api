@@ -6,7 +6,7 @@ const { acceptParams } = require('./types')
 class Entry {
   constructor ({ db, ruler, accessor }) {
     this._ruler = ruler || new Ruler(this)
-    this._accessor = accessor || new Accessor(this, db)
+    this._accessor = accessor || new Accessor(db)
   }
 
   async init () {

@@ -6,11 +6,10 @@ const { actions } = require('./types')
  * @see https://mongodb.github.io/node-mongodb-native/3.3/reference/connecting/connection-settings/
  */
 class Accessor {
-    constructor(entry, { dbName, url, connSettings }) {
+    constructor({ dbName, url, connSettings }) {
         assert.ok(dbName, 'invalid dbName')
         assert.ok(url, 'invalid url')
 
-        this._entry = entry
         this._dbName = dbName
 
         this._conn = new MongoClient(url, connSettings || {})

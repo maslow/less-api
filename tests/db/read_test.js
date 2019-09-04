@@ -3,14 +3,11 @@ const { Entry, Accessor, Ruler} = require('../../src/index')
 const {actions} = require('../../src/types')
 
 const dbconfig = {
-    dbName: 'test',
+    dbName: 'testdb',
     url: "mongodb://localhost:27017",
     connSettings: { 
         useNewUrlParser: true, 
-        useUnifiedTopology: true,
-        socketTimeoutMS: 30000,
-        keepAlive: true,
-        reconnectTries: 30000
+        useUnifiedTopology: true
      }
 }
 

@@ -11,7 +11,6 @@ class Accessor {
         assert.ok(url, 'invalid url')
 
         this._dbName = dbName
-
         this._conn = new MongoClient(url, connSettings || {})
         this._db = null
     }
@@ -49,7 +48,21 @@ class Accessor {
 
     async _read(collection, params){
         const coll = this.db.collection(collection)
-        return await coll.find() // todo
+        let { query, order, offset, limit, projection, multi} = params
+        query = query || {}
+        let options = {}
+        if(order) options.order = order
+        if(offset) options.offset = offset
+        if(projection) options.projection = projection
+
+        if(!limit){
+            options.limit = 100
+        }else{
+            options.limit = limit > 100 ? 100 : Number(limit).toFixed(0)
+        }
+        
+        const docs = await coll.find(query, options).toArray()
+        return docs
     }
 
     async _update(collection, params){

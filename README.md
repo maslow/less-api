@@ -61,6 +61,10 @@ const created = await db.collection('articles').add({
 const removed = await db.collection('articles').doc('the-doc-id').remove()
 ```
 
+    客户端数据操作采取了「微信云开发」的接口设计。
+
+@see 微信云开发接口文档： https://developers.weixin.qq.com/miniprogram/dev/wxcloud/reference-client-api/database/
+
 #### 服务端代码示例
 
 ```js

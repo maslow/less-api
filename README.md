@@ -3,6 +3,10 @@
 
 > 通过一套「访问控制规则」配置数据库访问，用一个 API 替代服务端 90% 的 APIs。
 
+> 客户端使用 One API 提供的 SDK，像操作数据库那样，直接读写相应的数据即可。
+
+> 使用 One API 可以让产品在 demo 期或发展初期的时候， 只投入极少的服务端工作，随着业务的发展， 逐渐有些 api 要改也不关系，可以按需增加传统的 api 来代替，两者完全不冲突，取决于客户端调用方式。
+
 ### 使用示例
 
 #### 客户端使用
@@ -61,11 +65,10 @@ const removed = await db.collection('articles').doc('the-doc-id').remove()
 
 ```js
 const express = require('express')
-const oneapi = require('oneapi')
+const oneapi = require('one-api')
 const rules = require('./rules.json')
 
-const app = new express()
-
+// init one api entry
 const db = {
   dbName: 'mydb',
   url: 'mongodb://localhost:27017/',
@@ -75,26 +78,32 @@ const entry = new oneapi.Entry({ db })
 entry.init()
 entry.loadRules(rules)
 
+// http server
+const app = new express()
 app.post('/entry', async (req, res) => {
-  const { role, userId } = parseToken(req.headers['Authorization'])
+    // your auth logics
+    const { role, userId } = parseToken(req.headers['Authorization'])
 
-  const { action } = req.body
-  const params = entry.parseParams(action, req.body)
+    // prepare params
+    const { action } = req.body
+    const params = entry.parseParams(action, req.body)
 
-  const injections = {
-    $role: role,
-    $userid: userId,
-    $query: params.query,
-    $data: params.data
-  }
+    const injections = {
+        $role: role,
+        $userid: userId,
+        $query: params.query,
+        $data: params.data
+    }
 
-  const matched = await entry.validate({...params, injections})
-  if(!matched){
-      return res.status(403).send('permission denied')
-  }
+    // validate access
+    const matched = await entry.validate({...params, injections})
+    if(!matched){
+        return res.status(403).send('permission denied')
+    }
 
-  const result = await entry.execute(params)
-  return res.send(result)
+    // execute query
+    const result = await entry.execute(params)
+    return res.send(result)
 })
 
 // other apis

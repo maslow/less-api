@@ -1,7 +1,7 @@
 {
-  "name": "oneapi",
+  "name": "one-api",
   "version": "1.0.0",
-  "description": "通过一套通过访问控制语言配置服务端数据访问 API.",
+  "description": "通过一套「访问控制规则」配置数据库访问，用一个 API 替代服务端 90% 的 APIs。",
   "main": "./src/index.js",
   "scripts": {
     "test": "mocha tests/*"

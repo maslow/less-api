@@ -27,7 +27,6 @@ class Accessor {
 
     async execute(params){
         const { collection, action } = params
-        assert.ok(Object.keys(actions).includes(action), "invalid 'action'")
 
         if(action === actions.READ) {
             return await this._read(collection, params)
@@ -44,6 +43,8 @@ class Accessor {
         if(action === actions.REMOVE) {
             return await this._remove(collection, params)
         }
+
+        throw new Error(`invalid 'action': ${action}`)
     }
 
     async _read(collection, params){
@@ -51,14 +52,14 @@ class Accessor {
         let { query, order, offset, limit, projection, multi} = params
         query = query || {}
         let options = {}
-        if(order) options.order = order
-        if(offset) options.offset = offset
+        if(order) options.sort = this._preprocessSort(order)
+        if(offset) options.skip = offset
         if(projection) options.projection = projection
 
         if(!limit){
             options.limit = 100
         }else{
-            options.limit = limit > 100 ? 100 : Number(limit).toFixed(0)
+            options.limit = limit > 100 ? 100 : limit
         }
         
         const docs = await coll.find(query, options).toArray()
@@ -78,6 +79,15 @@ class Accessor {
     async _remove(collection, params){
         const coll = this.db.collection(collection)
         return await coll.remove()  // todo
+    }
+
+    _preprocessSort(order) {
+        if(!(order instanceof Array))
+            return undefined
+        return order.map(od => {
+            let dir = od.direction === 'desc' ? -1 : 1
+            return [od.field, dir]
+        })
     }
 }
 

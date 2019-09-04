@@ -21,8 +21,8 @@ class Entry {
     return this._ruler.load(rules)
   }
 
-  async execute ({ collection, action, query, data, options }) {
-    return await this._accessor.execute({ collection, action, query, data, options })
+  async execute (params) {
+    return await this._accessor.execute(params)
   }
 
   async validate (params) {

@@ -106,7 +106,7 @@ app.listen(8080)
 
 #### 规则示例
 
-##### 示例一：简单博客
+##### 简单示例 1：简单博客
 
 ```json
 {
@@ -125,7 +125,7 @@ app.listen(8080)
 }
 ```
 
-##### 示例二：多用户博客
+##### 简单示例 2：多用户博客
 
 ```json
 {
@@ -138,7 +138,7 @@ app.listen(8080)
 }
 ```
 
-##### 示例三： 数据验证
+##### 复杂示例 1： 数据验证
 
 ```json
 {
@@ -152,6 +152,34 @@ app.listen(8080)
             "data.field": {"allow": ["title", "content"]},
         },
         ".remove": "$userid === $query.createBy || $admin === true"
+    }
+}
+```
+
+##### 复杂示例 2：更高级的数据验证
+
+> 场景介绍： 用户之间站内消息表访问规则
+
+```json
+{
+    "messages": {
+        ".read": "$userid && ($userid === $query.receiver || $userid === $query.sender)",
+        ".update": {
+            "condition": "$userid && $userid === $query.receiver",
+            "data.valid": {
+                "read": {"in": [true, false]}
+            },
+            "data.field": {"allow": ["read"]}
+        },
+        ".add": {
+            "condition": "$userid && $userid === $data.sender",
+            "data.valid": {
+                "content": {"length": [1, 20480]},
+                "receiver": {"exist": {"collection": "users", "field": "_id"}}
+            },
+            "data.field": {"allow": ["sender", "receiver", "content"]}
+        },
+        ".remove": false
     }
 }
 ```

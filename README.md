@@ -199,9 +199,39 @@ app.listen(8080)
 
 ### 测试
 
+> 准备
+
 ```sh
-    npm install
-    npm run test
+    npm i
+    npm i mocha -g
+```
+
+#### 单元测试
+
+```sh
+    mocha tests/units/*
+```
+
+#### 数据库访问测试
+
+##### 启动 Mongo
+
+```sh
+    # 使用 Docker 启动个测试数据库，等待mongo 启动成功
+    docker pull mongo
+    docker run -p 27017:27017 --name mongodb_for_test -d mongo
+```
+
+##### 执行测试用例
+
+```sh
+    mocha tests/db/*
+```
+
+##### 停止&删除 Mongo
+
+```sh
+    docker rm -f mongodb_for_test
 ```
 
 ### doing & todo

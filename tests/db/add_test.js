@@ -13,10 +13,6 @@ const dbconfig = {
 
 const COLL_NAME = 'test_add'
 
-/**
- *
- * @param {String} coll
- */
 async function restoreTestData (coll) {
   await coll.deleteMany({})
 }

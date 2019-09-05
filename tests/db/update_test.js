@@ -18,10 +18,7 @@ const TEST_DATA = [
   { title: 'title-3', content: 'content-3' }
 ]
 
-/**
- *
- * @param {String} coll
- */
+
 async function restoreTestData (coll) {
   await coll.deleteMany({})
   const r = await coll.insertMany(TEST_DATA)

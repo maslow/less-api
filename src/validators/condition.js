@@ -1,16 +1,13 @@
 const vm = require('vm')
 
-function ConditionHandler (
-  config,
-  { ruler, collection, action, query, data, options, injections }
-) {
+function ConditionHandler (config, { ruler, query, data, injections }) {
   try {
     let script = this._script
     if (!script) {
       script = new vm.Script(config)
       this._script = script
     }
-    const context = { ...injections, query, data, options }
+    const context = { ...injections, query, data }
     return script.runInNewContext(context)
   } catch (error) {
     return false

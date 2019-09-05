@@ -26,9 +26,7 @@ app.post('/entry', async (req, res) => {
 
   const injections = {
     $role: role,
-    $userid: userId,
-    $query: params.query,
-    $data: params.data
+    $userid: userId
   }
 
   const matched = await entry.validate({ ...params, injections })

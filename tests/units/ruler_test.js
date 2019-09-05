@@ -68,118 +68,124 @@ describe('class Ruler', () => {
 })
 
 describe('class Ruler validate() - condition', () => {
-    it('should passed', async () => {
-        const rules = {
-            categories: {
-                ".read": true,
-                ".update": "$admin === true",
-                ".add": {
-                    condition: "$admin === true"
-                },
-                ".remove": "$admin === true"
-            }
+    const rules = {
+        categories: {
+            ".read": true,
+            ".update": "$admin === true",
+            ".add": {
+                condition: "$admin === true"
+            },
+            ".remove": "$admin === true"
         }
-        const ruler = new Ruler()
-        ruler.load(rules)
-        const injections = {
-            $admin: true
-        }
-        let params = {
-            collection: 'categories', action: 'database.queryDocument', injections
-        }
-        let r = await ruler.validate(params)
-        assert.ok(r, 'condition-boolean error')
+    }
 
-        params.action = 'database.updateDocument'
-        r = await ruler.validate(params)
-        assert.ok(r, 'condition-string error')
+    const ruler = new Ruler()
+    ruler.load(rules)
+    const injections = {
+        $admin: true
+    }
 
-        params.action = 'database.addDocument'
-        r = await ruler.validate(params)
-        assert.ok(r, 'condition-object error')
+    let params = {
+        collection: 'categories', action: 'database.queryDocument', injections
+    }
 
-        params.action = 'database.deleteDocument'
-        r = await ruler.validate(params)
-        assert.ok(r, 'condition-array error')
+    it('read should be ok', async () => {
+        params.action = 'database.queryDocument'
+        const r = await ruler.validate(params)
+        assert.ok(r)
     })
 
-    it('should reject', async () => {
-        const rules = {
-            categories: {
-                ".read": false,
-                ".update": "$admin === true",
-                ".add": {
-                    condition: "$admin === true"
-                },
-                ".remove": "$admin === true"
-            }
-        }
-        const ruler = new Ruler()
-        ruler.load(rules)
-
-        const injections = {
-            $admin: false
-        }
-        let params = {
-            collection: 'categories', action: 'database.queryDocument', injections
-        }
-        let r = await ruler.validate(params)
-        assert.ok(!r, 'condition-boolean error')
-
+    it('update should be ok', async () => {
         params.action = 'database.updateDocument'
-        r = await ruler.validate(params)
-        assert.ok(!r, 'condition-string error')
+        const r = await ruler.validate(params)
+        assert.ok(r)
+    })
 
+    it('add should be ok', async () => {
         params.action = 'database.addDocument'
-        r = await ruler.validate(params)
-        assert.ok(!r, 'condition-object error')
+        const r = await ruler.validate(params)
+        assert.ok(r)
+    })
 
+    it('remove should be ok', async () => {
         params.action = 'database.deleteDocument'
+        const r = await ruler.validate(params)
+        assert.ok(r)
+    })
+
+    it('read should be rejected', async () => {
+        rules.categories['.read'] = false
+        ruler.load(rules)
+        const injections = { $admin: false }
+        let params = { collection: 'categories', action: 'database.queryDocument', injections }
+        let r = await ruler.validate(params)
+        assert.ok(!r)
+    })
+
+    it('update should be rejected', async () => {
+        const injections = { $admin: false }
+        let params = { collection: 'categories', action: 'database.updateDocument', injections }
+
         r = await ruler.validate(params)
-        assert.ok(!r, 'condition-array error')
+        assert.ok(!r)
+    })
+
+    it('add should be rejected', async () => {
+        const injections = { $admin: false }
+        let params = { collection: 'categories', action: 'database.addDocument', injections }
+    
+        r = await ruler.validate(params)
+        assert.ok(!r)
+    })
+
+    it('remove should be rejected', async () => {
+        const injections = { $admin: false }
+        let params = { collection: 'categories', action: 'database.deleteDocument', injections }
+    
+        r = await ruler.validate(params)
+        assert.ok(!r)
     })
 })
 
 
-describe('class Ruler validate()', () => {
-    it('multiple rules', async () => {
-        const rules = {
-            categories: {
-                ".read": [
-                    { condition: "$admin === true" },
-                    { condition: "$product === true"},
-                    { condition: "$market === true"}
-                ]
-            }
+describe('class Ruler validate() - multiple rules', () => {
+    const rules = {
+        categories: {
+            ".read": [
+                { condition: "$admin === true" },
+                { condition: "$product === true"},
+                { condition: "$market === true"}
+            ]
         }
-        const ruler = new Ruler()
-        ruler.load(rules)
+    }
+    const ruler = new Ruler()
+    ruler.load(rules)
 
-        let injections = {
-            $admin: true
-        }
-
-        let params = { collection: 'categories', action: 'database.queryDocument', injections}
-        let r = await ruler.validate(params)
+    it('injections with { $admin: true } should be ok', async () => {
+        const injections = { $admin: true }
+        const params = { collection: 'categories', action: 'database.queryDocument', injections}
+        const r = await ruler.validate(params)
         assert.ok(r)
+    })
 
-        params.injections = {
-            $product: true
-        }
-        r = await ruler.validate(params)
+    it('injections with { $product: true } should be ok', async () => {
+        const injections = { $product: true }
+        const params = { collection: 'categories', action: 'database.queryDocument', injections}
+        const r = await ruler.validate(params)
         assert.ok(r)
+    })
 
-        params.injections = {
-            $market: true
-        }
-
-        r = await ruler.validate(params)
+    it('injections with { $market: true } should be ok', async () => {
+        const injections = { $market: true }
+        const params = { collection: 'categories', action: 'database.queryDocument', injections}
+        const r = await ruler.validate(params)
         assert.ok(r)
+    })
 
-        params.injections = {
-            $other: true
-        }
-        r = await ruler.validate(params)
+    it('injections with { $other: true } should be rejected', async () => {
+        const injections = { $other: true }
+        const params = { collection: 'categories', action: 'database.queryDocument', injections}
+        const r = await ruler.validate(params)
         assert.ok(!r)
     })
 })

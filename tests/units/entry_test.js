@@ -26,9 +26,13 @@ describe('class Entry', () => {
     assert.ok(r.query)
     assert.ok(!r.other)
     assert.equal(r.query._id, 'test-id')
+  })
 
-    // unknown action should return empty object
-    r = entry.parseParams('database.unknowAction', reqParams)
+  it('parseParams() unknown action should return empty object', () => {
+    const db = { dbName: 'test', url: 'test-url' }
+    const entry = new Entry({ db })
+
+    const r = entry.parseParams('database.unknowAction', {})
     assert.ok(typeof r === 'object')
     assert.equal(Object.keys(r).length, 0)
   })

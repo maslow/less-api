@@ -42,7 +42,33 @@ describe('Database update', function () {
     await restoreTestData(coll)
   })
 
-  it('update one should be ok', async () => {
+  it('update first without query should be ok', async () => {
+    await restoreTestData(coll)
+
+    let params = {
+      collection: COLL_NAME,
+      action: actions.UPDATE,
+      query: {},
+      data: { title: 'title-updated-1' },
+      merge: true
+    }
+    const { result } = await entry.execute(params)
+
+    assert.equal(result.nModified, 1) // modified
+    assert.equal(result.n, 1) // matched
+
+    const updated = await coll.find().toArray()
+    assert.equal(updated[0].title, 'title-updated-1')       // changed
+    assert.equal(updated[0].content, TEST_DATA[0].content)  // unchanged
+
+    assert.equal(updated[1].title, TEST_DATA[1].title)       // unchanged
+    assert.equal(updated[1].content, TEST_DATA[1].content)   // unchanged
+
+    assert.equal(updated[1].title, TEST_DATA[1].title)       // unchanged
+    assert.equal(updated[1].content, TEST_DATA[1].content)   // unchanged
+  })
+
+  it('update one with query should be ok', async () => {
     await restoreTestData(coll)
 
     let params = {
@@ -117,6 +143,66 @@ describe('Database update', function () {
     assert.equal(updated.arr[0], 'item')
     assert.equal(updated.title, 'title-updated-1')          // changed
     assert.equal(updated.content, TEST_DATA[0].content)     // unchanged
+  })
+
+  it('update all should be ok', async () => {
+    await restoreTestData(coll)
+
+    let params = {
+      collection: COLL_NAME,
+      action: actions.UPDATE,
+      query: {},
+      data: {
+        title: 'title-updated-all'
+      },
+      merge: true,
+      multi: true
+    }
+    const { result } = await entry.execute(params)
+
+    assert.equal(result.nModified, 3)   // modified
+    assert.equal(result.n, 3)           // matched
+
+    const updated = await coll.find().toArray()
+    assert.equal(updated[0].title, 'title-updated-all')         // changed
+    assert.equal(updated[0].content, TEST_DATA[0].content)      // unchanged
+
+    assert.equal(updated[1].title, 'title-updated-all')         // changed
+    assert.equal(updated[1].content, TEST_DATA[1].content)      // unchanged
+
+    assert.equal(updated[2].title, 'title-updated-all')         // changed
+    assert.equal(updated[2].content, TEST_DATA[2].content)      // unchanged
+  })
+
+  it('update parts using $or in query should be ok', async () => {
+    await restoreTestData(coll)
+
+    let params = {
+      collection: COLL_NAME,
+      action: actions.UPDATE,
+      query: {
+        $or: [
+          {title: TEST_DATA[0].title}, 
+          {title: TEST_DATA[1].title}
+        ]
+      },
+      data: {
+        title: 'title-updated-all'
+      },
+      merge: true,
+      multi: true
+    }
+    const { result } = await entry.execute(params)
+
+    assert.equal(result.nModified, 2)   // modified
+    assert.equal(result.n, 2)           // matched
+
+    const updated = await coll.find().toArray()
+    assert.equal(updated[0].title, 'title-updated-all')         // changed
+    assert.equal(updated[0].content, TEST_DATA[0].content)      // unchanged
+
+    assert.equal(updated[1].title, 'title-updated-all')         // changed
+    assert.equal(updated[1].content, TEST_DATA[1].content)      // unchanged
   })
 
   it('replace one should be ok', async () => {

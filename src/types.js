@@ -22,7 +22,7 @@ const actionMap = {
 const acceptParams = {
     [actions.READ]: ['query', 'order', 'offset', 'limit', 'projection', 'multi'],
     [actions.UPDATE]: ['query', 'data', 'multi', 'upsert', 'merge'],
-    [actions.ADD]: ['data'],
+    [actions.ADD]: ['data', 'multi'],
     [actions.REMOVE]: ['query', 'multi']
 }
 

@@ -49,6 +49,7 @@ class Accessor {
 
     async _read(collection, params){
         const coll = this.db.collection(collection)
+        // todo multi
         let { query, order, offset, limit, projection, multi} = params
         query = query || {}
         let options = {}
@@ -68,17 +69,33 @@ class Accessor {
 
     async _update(collection, params){
         const coll = this.db.collection(collection)
-        return await coll.update() // todo
+        // todo merge
+        let { query, data, multi, upsert, merge} = params
+        query = query || {}
+        data = data || {}
+        let options = {}
+        if(upsert) options.upsert = upsert
+        if(multi){
+            return await coll.updateOne(query, data, options)
+        }else{
+            options.upsert = false
+            return await coll.updateMany(query, data, options)
+        }
     }
 
     async _add(collection, params){
         const coll = this.db.collection(collection)
-        return await coll.insert()  // todo
+        // todo multi
+        let { data, multi } = params
+        data = data || {}
+        return await coll.insertOne(data)
     }
 
     async _remove(collection, params){
         const coll = this.db.collection(collection)
-        return await coll.remove()  // todo
+        let { query, multi } = params
+        query = query || {}
+        return await coll.deleteOne(query)
     }
 
     _preprocessSort(order) {

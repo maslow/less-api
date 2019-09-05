@@ -1,6 +1,6 @@
 const assert = require('assert')
 const MongoClient = require('mongodb').MongoClient
-const { actions } = require('./types')
+const { actions, UPDATE_COMMANDS } = require('./types')
 
 /**
  * @see https://mongodb.github.io/node-mongodb-native/3.3/reference/connecting/connection-settings/
@@ -63,19 +63,55 @@ class Accessor {
             options.limit = limit > 100 ? 100 : limit
         }
         
-        const docs = await coll.find(query, options).toArray()
-        return docs
+        return await coll.find(query, options).toArray()
     }
 
     async _update(collection, params){
         const coll = this.db.collection(collection)
-        // todo merge
+
         let { query, data, multi, upsert, merge} = params
+
         query = query || {}
         data = data || {}
+
         let options = {}
         if(upsert) options.upsert = upsert
-        if(multi){
+
+        const OPTRS = Object.values(UPDATE_COMMANDS)
+
+        // process update operators
+        if(!merge){
+            // check if any operator exists
+            let hasOperator = false
+            const checkMixed = objs => {
+                if (typeof objs !== 'object') return
+
+                for (let key in objs) {
+                    if (OPTRS.includes(key)) {
+                        hasOperator = true
+                    } else if (typeof objs[key] === 'object') {
+                        checkMixed(objs[key])
+                    }
+                }
+            }
+            checkMixed(data)
+
+            assert.ok(!hasOperator, 'data must not contain any operator while `merge` with false')
+            return await coll.replaceOne(query, data, options)
+        }
+
+        // add default operator($set) for non-operator-object if merge === true
+        for (let key in data) {
+            if (OPTRS.includes(key)) 
+                continue
+
+            data[UPDATE_COMMANDS.SET] = {
+                [key]: data[key]
+            }
+            delete data[key]
+        }
+
+        if(!multi){
             return await coll.updateOne(query, data, options)
         }else{
             options.upsert = false
@@ -85,17 +121,25 @@ class Accessor {
 
     async _add(collection, params){
         const coll = this.db.collection(collection)
-        // todo multi
         let { data, multi } = params
         data = data || {}
-        return await coll.insertOne(data)
+        if(!multi){
+            return await coll.insertOne(data)
+        }else{
+            data = data instanceof Array ? data: [data]
+            return await coll.insertMany(data)
+        }
     }
 
     async _remove(collection, params){
         const coll = this.db.collection(collection)
         let { query, multi } = params
         query = query || {}
-        return await coll.deleteOne(query)
+        if(!multi){
+            return await coll.deleteOne(query)
+        }else{
+            return await coll.deleteMany(query)
+        }
     }
 
     _preprocessSort(order) {

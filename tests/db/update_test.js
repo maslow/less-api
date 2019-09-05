@@ -1,7 +1,6 @@
 const assert = require('assert')
 const { Entry } = require('../../src/index')
 const { actions } = require('../../src/types')
-const ObjectId = require('mongodb').ObjectID
 
 const dbconfig = {
   dbName: 'testdb',
@@ -248,7 +247,7 @@ describe('Database update', function () {
           .toString()
           .indexOf(
             'data must not contain any operator while `merge` with false'
-          )
+          ) > 0
       )
     }
 

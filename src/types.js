@@ -26,9 +26,44 @@ const acceptParams = {
     [actions.REMOVE]: ['query', 'multi']
 }
 
+const UPDATE_COMMANDS = {
+  SET: '$set',
+  REMOVE: '$unset',
+  INC: '$inc',
+  MUL: '$mul',
+  PUSH: '$push',
+  POP: '$pop',
+  SHIFT: '$pop',
+  UNSHIFT: '$push',
+}
+
+const LOGIC_COMMANDS = {
+    AND: '$and',
+    OR: '$or',
+    NOT: '$not',
+    NOR: '$nor',
+}
+
+const QUERY_COMMANDS = {
+    EQ: '$eq',
+    NEQ: '$ne',
+    GT: '$gt',
+    GTE: '$gte',
+    LT: '$lt',
+    LTE: '$lte',
+    IN: '$in',
+    NIN: '$nin',
+    GEO_NEAR: '$geoNear',
+    GEO_WITHIN: '$geoWithin',
+    GEO_INTERSECTS: '$geoIntersects'
+  }
+
 module.exports = {
     actions,
     permissions,
     actionMap,
-    acceptParams
+    acceptParams,
+    UPDATE_COMMANDS,
+    LOGIC_COMMANDS,
+    QUERY_COMMANDS
 }

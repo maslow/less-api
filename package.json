@@ -6,7 +6,12 @@
   "scripts": {
     "test": "mocha tests/units/*"
   },
-  "keywords": ["BaaS", "cloud", "mongo", "acl"],
+  "keywords": [
+    "BaaS",
+    "cloud",
+    "mongo",
+    "acl"
+  ],
   "author": "maslow(wangfugen@126.com)",
   "license": "ISC",
   "dependencies": {

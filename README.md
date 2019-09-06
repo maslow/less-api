@@ -1,11 +1,16 @@
 
 ### 介绍
 
-> 通过一套「访问控制规则」配置数据库访问，用一个 API 替代服务端 90% 的 APIs。
+通过一套「访问控制规则」配置数据库访问，用一个 API 替代服务端 90% 的 APIs。
 
-> 客户端使用 One API 提供的 SDK，像操作数据库那样，直接读写相应的数据即可。
+客户端使用 One API 提供的 SDK，像操作数据库那样，直接读写相应的数据即可。
 
-> 使用 One API 可以让产品在 demo 期或发展初期的时候， 只投入极少的服务端工作，随着业务的发展， 逐渐有些 api 要改也不关系，可以按需增加传统的 api 来代替，两者完全不冲突，取决于客户端调用方式。
+使用 One API 可以让产品在 demo 期或发展初期的时候， 只投入极少的服务端工作，随着业务的发展，可以按需增加传统的 api 来代替，两者完全不冲突，取决于客户端调用方式。
+
+### 场景
+
+- 用于快速开发 MVP，专注于客户端业务，极大程度减少服务端开发工作量
+- 用于云开发（BaaS）服务中，屏蔽云厂商的环境差异，亦方便由 BaaS 到自建 Server 的迁移
 
 ### 使用示例
 
@@ -61,7 +66,7 @@ const created = await db.collection('articles').add({
 const removed = await db.collection('articles').doc('the-doc-id').remove()
 ```
 
-    客户端数据操作采取了「微信云开发」的接口设计。
+客户端数据操作采取了「微信云开发」的接口设计。
 
 @see 微信云开发接口文档： https://developers.weixin.qq.com/miniprogram/dev/wxcloud/reference-client-api/database/
 
@@ -144,9 +149,9 @@ app.listen(8080)
 {
     "articles": {
         ".read": true,
-        ".update": "$userid && $userid === $query.createdBy",
-        ".add": "$userid && $data.createdBy === $userid",
-        ".remove": "$userid === $query.createBy || $admin === true"
+        ".update": "$userid && $userid === query.createdBy",
+        ".add": "$userid && data.createdBy === $userid",
+        ".remove": "$userid === query.createBy || $admin === true"
     }
 }
 ```
@@ -157,14 +162,14 @@ app.listen(8080)
 {
     "articles": {
         ".add": {
-            "condition": "$userid && $data.createdBy === $userid",
+            "condition": "$userid && data.createdBy === $userid",
             "data.valid": {
                 "title": {"length": [1, 64]},
                 "content": {"length": [1, 4096]},
             },
             "data.field": {"allow": ["title", "content"]},
         },
-        ".remove": "$userid === $query.createBy || $admin === true"
+        ".remove": "$userid === query.createBy || $admin === true"
     }
 }
 ```
@@ -176,16 +181,16 @@ app.listen(8080)
 ```json
 {
     "messages": {
-        ".read": "$userid && ($userid === $query.receiver || $userid === $query.sender)",
+        ".read": "$userid && ($userid === query.receiver || $userid === query.sender)",
         ".update": {
-            "condition": "$userid && $userid === $query.receiver",
+            "condition": "$userid && $userid === query.receiver",
             "data.valid": {
                 "read": {"in": [true, false]}
             },
             "data.field": {"allow": ["read"]}
         },
         ".add": {
-            "condition": "$userid && $userid === $data.sender",
+            "condition": "$userid && $userid === data.sender",
             "data.valid": {
                 "content": {"length": [1, 20480]},
                 "receiver": {"exist": {"collection": "users", "field": "_id"}}
@@ -197,9 +202,9 @@ app.listen(8080)
 }
 ```
 
-### 测试
+### 运行测试
 
-> 准备
+安装依赖
 
 ```sh
     npm i
@@ -214,7 +219,7 @@ app.listen(8080)
 
 #### 数据库访问测试
 
-##### 启动 Mongo
+需要先启动一个 MongoDB Server 实例用作测试
 
 ```sh
     # 使用 Docker 启动个测试数据库，等待mongo 启动成功
@@ -222,13 +227,13 @@ app.listen(8080)
     docker run -p 27017:27017 --name mongodb_for_test -d mongo
 ```
 
-##### 执行测试用例
+执行测试用例
 
 ```sh
     mocha tests/db/*
 ```
 
-##### 停止&删除 Mongo
+停止&删除 Mongo 实例
 
 ```sh
     docker rm -f mongodb_for_test

@@ -1,5 +1,5 @@
 const express = require('express')
-const oneapi = require('./src/index')
+const { Entry } = require('./src')
 const rules = require('./examples/rules.json')
 
 const app = new express()
@@ -14,7 +14,7 @@ const db = {
     poolSize: 10
   }
 }
-const entry = new oneapi.Entry({ db })
+const entry = new Entry({ db })
 entry.init()
 entry.loadRules(rules)
 

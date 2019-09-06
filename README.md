@@ -3,9 +3,9 @@
 
 通过一套「访问控制规则」配置数据库访问，用一个 API 替代服务端 90% 的 APIs。
 
-客户端使用 One API 提供的 SDK，像操作数据库那样，直接读写相应的数据即可。
+客户端使用 `less-api` 提供的 SDK，像操作数据库那样，直接读写相应的数据即可。
 
-使用 One API 可以让产品在 demo 期或发展初期的时候， 只投入极少的服务端工作，随着业务的发展，可以按需增加传统的 api 来代替，两者完全不冲突，取决于客户端调用方式。
+使用 `less-api` 可以让产品在 demo 期或发展初期的时候， 只投入极少的服务端工作，随着业务的发展，可以按需增加传统的 api 来代替，两者完全不冲突，取决于客户端调用方式。
 
 ### 场景
 
@@ -14,11 +14,75 @@
 
 ### 使用示例
 
+```sh
+    npm install less-api
+```
+
+#### 服务端代码示例
+
+```js
+const express = require('express')
+const { Entry } = require('less-api')
+
+const rules = {
+    categories: {
+        ".read": true,
+        ".update": "$admin === true",
+        ".add": "$admin === true",
+        ".remove": "$admin === true"
+    }
+}
+
+// init less api entry
+const db = {
+  dbName: 'mydb',
+  url: 'mongodb://localhost:27017/',
+  connSettings: {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  }
+}
+const entry = new Entry({ db })
+entry.init()
+entry.loadRules(rules)
+
+// http server
+const app = new express()
+app.post('/entry', async (req, res) => {
+    // your auth logics
+    const { role, userId } = parseToken(req.headers['Authorization'])
+
+    // prepare params
+    const { action } = req.body
+    const params = entry.parseParams(action, req.body)
+
+    const injections = {
+        $role: role,
+        $userid: userId
+    }
+
+    // validate access
+    const matched = await entry.validate({...params, injections})
+    if(!matched){
+        return res.status(403).send('permission denied')
+    }
+
+    // execute query
+    const result = await entry.execute(params)
+    return res.send(result)
+})
+
+// other apis
+app.post('/payment', (req, res) => { /* ... */ })
+app.post('/upload', (req, res) => { /* ... */ })
+
+app.listen(8080)
+```
+
 #### 客户端使用
 
 ```js
-const OneApi = require('one-api-client-js')
-const cloud = OneApi.init({
+const cloud = require('less-api-client-js').init({
     url: 'http://localhost:8080/entry',
     getAccessToken: () => localStorage.getItem('access_token')
 })
@@ -52,13 +116,9 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 // add a document
 const created = await db.collection('articles').add({
   data: {
-    title: "one api database",
+    title: "less api database",
     content: 'less api more life',
-    tags: [
-      "cloud",
-      "database"
-    ],
-    createdAt: new Date("2019-09-01)
+    createdAt: new Date("2019-09-01")
   }
 })
 
@@ -70,59 +130,7 @@ const removed = await db.collection('articles').doc('the-doc-id').remove()
 
 @see 微信云开发接口文档： https://developers.weixin.qq.com/miniprogram/dev/wxcloud/reference-client-api/database/
 
-#### 服务端代码示例
-
-```js
-const express = require('express')
-const oneapi = require('one-api')
-const rules = require('./rules.json')
-
-// init one api entry
-const db = {
-  dbName: 'mydb',
-  url: 'mongodb://localhost:27017/',
-  connSettings: { }
-}
-const entry = new oneapi.Entry({ db })
-entry.init()
-entry.loadRules(rules)
-
-// http server
-const app = new express()
-app.post('/entry', async (req, res) => {
-    // your auth logics
-    const { role, userId } = parseToken(req.headers['Authorization'])
-
-    // prepare params
-    const { action } = req.body
-    const params = entry.parseParams(action, req.body)
-
-    const injections = {
-        $role: role,
-        $userid: userId,
-        $query: params.query,
-        $data: params.data
-    }
-
-    // validate access
-    const matched = await entry.validate({...params, injections})
-    if(!matched){
-        return res.status(403).send('permission denied')
-    }
-
-    // execute query
-    const result = await entry.execute(params)
-    return res.send(result)
-})
-
-// other apis
-app.post('/payment', (req, res) => { /* ... */ })
-app.post('/upload', (req, res) => { /* ... */ })
-
-app.listen(8080)
-```
-
-#### 规则示例
+#### 数据访问安全规则示例
 
 ##### 简单示例 1：简单博客
 
@@ -219,10 +227,9 @@ app.listen(8080)
 
 #### 数据库访问测试
 
-需要先启动一个 MongoDB Server 实例用作测试
+使用 Docker 启动个测试数据库，等待mongo 启动成功
 
 ```sh
-    # 使用 Docker 启动个测试数据库，等待mongo 启动成功
     docker pull mongo
     docker run -p 27017:27017 --name mongodb_for_test -d mongo
 ```
@@ -242,7 +249,7 @@ app.listen(8080)
 ### doing & todo
 
 - 实现「数据访问控制规则」
-- 提供 JS 版客户端 SDK: oneapi-client-js
+- 提供 JS 版客户端 SDK: less-api-client-js
 - 实现服务端应用内数据操作事件，可订阅相应事件，触发更多自定义的业务逻辑
 - 基于 Mongo 的`change watch`, 实现客户端可订阅数据变更通知，服务端通过 websocket 向客户端实时推送数据变更
 - 提供 Android & iOS 客户端 SDK

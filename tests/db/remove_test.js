@@ -1,15 +1,7 @@
 const assert = require('assert')
 const { Entry } = require('../../src/index')
 const { actions } = require('../../src/types')
-
-const dbconfig = {
-  dbName: 'testdb',
-  url: 'mongodb://localhost:27017',
-  connSettings: {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  }
-}
+const { dbconfig } = require('./_db')
 
 const COLL_NAME = 'test_remove'
 const TEST_DATA = [

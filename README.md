@@ -21,7 +21,7 @@
 #### 服务端代码示例
 
 ```js
-const express = require('express')
+const app = require('express')()
 const { Entry } = require('less-api')
 
 const rules = {
@@ -33,15 +33,7 @@ const rules = {
     }
 }
 
-const app = new express()
 app.use(express.json())
-
-function parseToken(token){
-  return {
-    admin: true,
-    userId: 123
-  }
-}
 
 // @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
 const db = {
@@ -53,6 +45,7 @@ const db = {
     poolSize: 10
   }
 }
+
 const entry = new Entry({ db })
 entry.init()
 entry.loadRules(rules)
@@ -88,8 +81,14 @@ app.listen(8080, () => console.log('listening on 8080'))
 
 #### 客户端使用
 
+[Javascript client sdk](https://github.com/Maslow/less-api-client-js.git)
+
+```sh
+    npm install less-api-client
+```
+
 ```js
-const cloud = require('less-api-client-js').init({
+const cloud = require('less-api-client').init({
     url: 'http://localhost:8080/entry',
     getAccessToken: () => localStorage.getItem('access_token')
 })
@@ -99,9 +98,6 @@ const db = cloud.database()
 // query documents
 const cates = await db.collection('categories').get()
 
-// query a document
-const cate = await db.collection('categories').doc('the-doc-id').get()
-
 // query with options
 const articles = await db.collection('articles')
     .where({})
@@ -110,27 +106,12 @@ const articles = await db.collection('articles')
     .limit(20)
     .get()
 
-// count documents
-const total = await db.collection('articles').where({createdBy: 'the-user-id'}).count()
-
 // update document
 const updated = await db.collection('articles').doc('the-doc-id').update({
     data: {
         title: 'new-title'
     }
 })
-
-// add a document
-const created = await db.collection('articles').add({
-  data: {
-    title: "less api database",
-    content: 'less api more life',
-    createdAt: new Date("2019-09-01")
-  }
-})
-
-// delete a document
-const removed = await db.collection('articles').doc('the-doc-id').remove()
 ```
 
 客户端数据操作采取了「微信云开发」的接口设计。

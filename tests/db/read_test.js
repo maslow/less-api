@@ -30,8 +30,8 @@ describe('Database read', function () {
       action: actions.READ
     }
     const data = await entry.execute(params)
-    assert.ok(data instanceof Array)
-    assert.equal(data.length, TEST_DATA.length)
+    assert.ok(data.list instanceof Array)
+    assert.equal(data.list.length, TEST_DATA.length)
   })
 
   it('read with query should be ok', async () => {
@@ -41,9 +41,9 @@ describe('Database read', function () {
       query: { title: TEST_DATA[0].title }
     }
     const data = await entry.execute(params)
-    assert.ok(data instanceof Array)
-    assert.equal(data.length, 1)
-    assert.equal(data[0].title, TEST_DATA[0].title)
+    assert.ok(data.list instanceof Array)
+    assert.equal(data.list.length, 1)
+    assert.equal(data.list[0].title, TEST_DATA[0].title)
   })
 
   it('read with order(desc) should be ok', async () => {
@@ -54,10 +54,10 @@ describe('Database read', function () {
       order: [{ field: 'title', direction: 'desc' }]
     }
     const data = await entry.execute(params)
-    assert.ok(data instanceof Array)
-    assert.equal(data.length, TEST_DATA.length)
+    assert.ok(data.list instanceof Array)
+    assert.equal(data.list.length, TEST_DATA.length)
     const lastItem = TEST_DATA[TEST_DATA.length - 1]
-    assert.equal(data[0].title, lastItem.title)
+    assert.equal(data.list[0].title, lastItem.title)
   })
 
   it('read with order(asc) should be ok', async () => {
@@ -68,9 +68,9 @@ describe('Database read', function () {
       order: [{ field: 'title', direction: 'asc' }]
     }
     const data = await entry.execute(params)
-    assert.ok(data instanceof Array)
-    assert.equal(data.length, TEST_DATA.length)
-    assert.equal(data[0].title, TEST_DATA[0].title)
+    assert.ok(data.list instanceof Array)
+    assert.equal(data.list.length, TEST_DATA.length)
+    assert.equal(data.list[0].title, TEST_DATA[0].title)
   })
 
   it('read with offset should be ok', async () => {
@@ -81,9 +81,9 @@ describe('Database read', function () {
       offset: 1
     }
     const data = await entry.execute(params)
-    assert.ok(data instanceof Array)
-    assert.equal(data.length, TEST_DATA.length - 1)
-    assert.equal(data[0].title, TEST_DATA[1].title)
+    assert.ok(data.list instanceof Array)
+    assert.equal(data.list.length, TEST_DATA.length - 1)
+    assert.equal(data.list[0].title, TEST_DATA[1].title)
   })
 
   it('read with exceed offset should be ok', async () => {
@@ -94,8 +94,8 @@ describe('Database read', function () {
       offset: 99999
     }
     const data = await entry.execute(params)
-    assert.ok(data instanceof Array)
-    assert.equal(data.length, 0)
+    assert.ok(data.list instanceof Array)
+    assert.equal(data.list.length, 0)
   })
 
   it('read with limit = 0 should be ok', async () => {
@@ -107,9 +107,9 @@ describe('Database read', function () {
       limit: 0
     }
     const data = await entry.execute(params)
-    assert.ok(data instanceof Array)
-    assert.equal(data.length, 3)
-    assert.equal(data[0].title, TEST_DATA[0].title)
+    assert.ok(data.list instanceof Array)
+    assert.equal(data.list.length, 3)
+    assert.equal(data.list[0].title, TEST_DATA[0].title)
   })
 
   it('read with limit should be ok', async () => {
@@ -120,9 +120,9 @@ describe('Database read', function () {
       limit: 1
     }
     const data = await entry.execute(params)
-    assert.ok(data instanceof Array)
-    assert.equal(data.length, 1)
-    assert.equal(data[0].title, TEST_DATA[0].title)
+    assert.ok(data.list instanceof Array)
+    assert.equal(data.list.length, 1)
+    assert.equal(data.list[0].title, TEST_DATA[0].title)
   })
 
   it('read with projection should be ok', async () => {
@@ -133,11 +133,11 @@ describe('Database read', function () {
       projection: { title: 1 }
     }
     const data = await entry.execute(params)
-    assert.ok(data instanceof Array)
-    assert.equal(data.length, TEST_DATA.length)
-    assert.ok(data[0].title)
-    assert.ok(data[0]._id)
-    assert.ok(!data[0].content)
+    assert.ok(data.list instanceof Array)
+    assert.equal(data.list.length, TEST_DATA.length)
+    assert.ok(data.list[0].title)
+    assert.ok(data.list[0]._id)
+    assert.ok(!data.list[0].content)
   })
 
   after(async () => {

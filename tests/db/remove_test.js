@@ -38,7 +38,7 @@ describe('Database remove', function () {
       multi: true
     }
     const r = await entry.execute(params)
-    assert.equal(r.deletedCount, 3)
+    assert.equal(r.deleted, 3)
 
     const data = await coll.find().toArray()
     assert.equal(data.length, 0)
@@ -53,7 +53,7 @@ describe('Database remove', function () {
       query: { title: 'title-1' }
     }
     const r = await entry.execute(params)
-    assert.equal(r.deletedCount, 1)
+    assert.equal(r.deleted, 1)
 
     const data = await coll.find().toArray()
     assert.equal(data.length, 2)
@@ -73,7 +73,7 @@ describe('Database remove', function () {
       multi: true
     }
     const r = await entry.execute(params)
-    assert.equal(r.deletedCount, 2)
+    assert.equal(r.deleted, 2)
 
     const data = await coll.find().toArray()
 

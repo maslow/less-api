@@ -1,7 +1,7 @@
 
 const Ruler = require('./ruler')
 const Accessor = require('./accessor')
-const { acceptParams } = require('./types')
+const { acceptParams, actions } = require('./types')
 
 class Entry {
   constructor ({ db, ruler, accessor }) {
@@ -22,7 +22,41 @@ class Entry {
   }
 
   async execute (params) {
-    return await this._accessor.execute(params)
+    const { action } = params
+    const result = await this._accessor.execute(params)
+    if(action === actions.READ) {
+      return { list: result }
+    }
+
+    if(action === actions.UPDATE) {
+      return {
+        upsert_id: result.upsertedId,
+        updated: result.modifiedCount,
+        matched: result.matchedCount
+      }
+    }
+
+    if(action === actions.ADD){
+      if(result.insertedIds){
+        return {
+          _id: result.insertedIds,
+          insertedCount: result.insertedCount
+        }
+      }
+
+      return {
+        _id: result.insertedId,
+        insertedCount: result.insertedCount
+      }
+    }
+
+    if(action === actions.REMOVE) {
+      return {
+        deleted: result.deletedCount
+      }
+    }
+
+    return {}
   }
 
   async validate (params) {

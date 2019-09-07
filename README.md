@@ -33,50 +33,57 @@ const rules = {
     }
 }
 
-// init less api entry
+const app = new express()
+app.use(express.json())
+
+function parseToken(token){
+  return {
+    admin: true,
+    userId: 123
+  }
+}
+
+// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
 const db = {
   dbName: 'mydb',
-  url: 'mongodb://localhost:27017/',
+  url: 'mongodb://localhost:27017',
   connSettings: {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    poolSize: 10
   }
 }
 const entry = new Entry({ db })
 entry.init()
 entry.loadRules(rules)
 
-// http server
-const app = new express()
 app.post('/entry', async (req, res) => {
-    // your auth logics
-    const { role, userId } = parseToken(req.headers['Authorization'])
+  const { admin, userId } = parseToken(req.headers['Authorization'])
 
-    // prepare params
-    const { action } = req.body
-    const params = entry.parseParams(action, req.body)
+  const { action } = req.body
+  const params = entry.parseParams(action, req.body)
 
-    const injections = {
-        $role: role,
-        $userid: userId
-    }
+  const injections = {
+    $admin: admin,
+    $userid: userId
+  }
 
-    // validate access
-    const matched = await entry.validate({...params, injections})
-    if(!matched){
-        return res.status(403).send('permission denied')
-    }
+  const matched = await entry.validate({ ...params, injections })
+  if (!matched) {
+    return res.send({
+      code: 4,
+      data: 'permission denied'
+    })
+  }
 
-    // execute query
-    const result = await entry.execute(params)
-    return res.send(result)
+  const data = await entry.execute(params)
+  return res.send({
+    code: 0,
+    data
+  })
 })
 
-// other apis
-app.post('/payment', (req, res) => { /* ... */ })
-app.post('/upload', (req, res) => { /* ... */ })
-
-app.listen(8080)
+app.listen(8080, () => console.log('listening on 8080'))
 ```
 
 #### 客户端使用

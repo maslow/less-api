@@ -40,10 +40,10 @@ describe('Database update', function () {
       data: { title: 'title-updated-1' },
       merge: true
     }
-    const { result } = await entry.execute(params)
+    const result = await entry.execute(params)
 
-    assert.equal(result.nModified, 1) // modified
-    assert.equal(result.n, 1) // matched
+    assert.equal(result.updated, 1) // modified
+    assert.equal(result.matched, 1) // matched
 
     const updated = await coll.find().toArray()
     assert.equal(updated[0].title, 'title-updated-1')       // changed
@@ -68,10 +68,10 @@ describe('Database update', function () {
       data: { title: 'title-updated-1' },
       merge: true
     }
-    const { result } = await entry.execute(params)
+    const result = await entry.execute(params)
 
-    assert.equal(result.nModified, 1) // modified
-    assert.equal(result.n, 1) // matched
+    assert.equal(result.updated, 1) // modified
+    assert.equal(result.matched, 1) // matched
 
     const [updated] = await coll.find().toArray()
     assert.equal(updated.title, 'title-updated-1') // changed
@@ -94,10 +94,10 @@ describe('Database update', function () {
       },
       merge: true
     }
-    const { result } = await entry.execute(params)
+    const result = await entry.execute(params)
 
-    assert.equal(result.nModified, 1) // modified
-    assert.equal(result.n, 1) // matched
+    assert.equal(result.updated, 1) // modified
+    assert.equal(result.matched, 1) // matched
 
     const [updated] = await coll.find().toArray()
     assert.equal(updated.title, 'title-updated-1')          // changed
@@ -121,10 +121,10 @@ describe('Database update', function () {
       },
       merge: true
     }
-    const { result } = await entry.execute(params)
+    const result = await entry.execute(params)
 
-    assert.equal(result.nModified, 1) // modified
-    assert.equal(result.n, 1) // matched
+    assert.equal(result.updated, 1) // modified
+    assert.equal(result.matched, 1) // matched
 
     const [updated] = await coll.find().toArray()
     assert.ok(updated.arr instanceof Array)
@@ -146,10 +146,10 @@ describe('Database update', function () {
       merge: true,
       multi: true
     }
-    const { result } = await entry.execute(params)
+    const result = await entry.execute(params)
 
-    assert.equal(result.nModified, 3)   // modified
-    assert.equal(result.n, 3)           // matched
+    assert.equal(result.updated, 3)   // modified
+    assert.equal(result.matched, 3)           // matched
 
     const updated = await coll.find().toArray()
     assert.equal(updated[0].title, 'title-updated-all')         // changed
@@ -180,10 +180,10 @@ describe('Database update', function () {
       merge: true,
       multi: true
     }
-    const { result } = await entry.execute(params)
+    const result = await entry.execute(params)
 
-    assert.equal(result.nModified, 2)   // modified
-    assert.equal(result.n, 2)           // matched
+    assert.equal(result.updated, 2)   // modified
+    assert.equal(result.matched, 2)           // matched
 
     const updated = await coll.find().toArray()
     assert.equal(updated[0].title, 'title-updated-all')         // changed
@@ -205,10 +205,10 @@ describe('Database update', function () {
       data: { title: 'title-updated-1' },
       merge: false
     }
-    const { result } = await entry.execute(params)
+    const result = await entry.execute(params)
 
-    assert.equal(result.nModified, 1) // modified
-    assert.equal(result.n, 1) // matched
+    assert.equal(result.updated, 1) // modified
+    assert.equal(result.matched, 1) // matched
 
     const [updated] = await coll.find().toArray()
     assert.equal(updated.title, 'title-updated-1') // changed

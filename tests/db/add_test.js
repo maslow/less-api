@@ -31,7 +31,7 @@ describe('Database add', function () {
           data: { title: 'title-1', content: 'content-1' },
         }
         const r = await entry.execute(params)
-        assert.ok(r.insertedId)
+        assert.ok(r._id)
         assert.equal(r.insertedCount, 1)
 
         const inserted = await coll.find().toArray()
@@ -57,7 +57,7 @@ describe('Database add', function () {
 
         const r = await entry.execute(params)
         assert.equal(r.insertedCount, 2)
-        assert.ok(r.insertedIds)   // object: { '0': 5d71614ff3922156c0f01f23, '1': 5d71614ff3922156c0f01f24 } 
+        assert.ok(r._id)   // object: { '0': 5d71614ff3922156c0f01f23, '1': 5d71614ff3922156c0f01f24 } 
 
         const inserted = await coll.find().toArray()
 

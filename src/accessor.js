@@ -1,5 +1,5 @@
 const assert = require('assert')
-const MongoClient = require('mongodb').MongoClient
+const { MongoClient, ObjectID } = require('mongodb')
 const { actions, UPDATE_COMMANDS } = require('./types')
 
 /**
@@ -26,7 +26,11 @@ class Accessor {
     }
 
     async execute(params){
-        const { collection, action } = params
+        const { collection, action, query } = params
+        // 处理 query._id 的类型问题
+        if(query && query._id) {
+            query._id =  ObjectID(query._id)
+        }
 
         if(action === actions.READ) {
             return await this._read(collection, params)
@@ -62,7 +66,6 @@ class Accessor {
         }else{
             options.limit = limit > 100 ? 100 : limit
         }
-        
         return await coll.find(query, options).toArray()
     }
 

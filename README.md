@@ -89,7 +89,7 @@ app.listen(8080, () => console.log('listening on 8080'))
 
 ```js
 const cloud = require('less-api-client').init({
-    url: 'http://localhost:8080/entry',
+    entryUrl: 'http://localhost:8080/entry',
     getAccessToken: () => localStorage.getItem('access_token')
 })
 

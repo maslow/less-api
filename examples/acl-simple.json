@@ -10,7 +10,7 @@
         ".update": {
             "condition": "$admin === true",
             "data.valid": { 
-                "title": {"length": [1, 64]},
+                "title": {"length": [1, 64], "required": true},
                 "content": {"length": [1, 20480]}
             },
             "data.fields": {"allow": ["title", "content"]}
@@ -18,10 +18,14 @@
         ".add": {
             "condition": "$admin === true",
             "data.valid": { 
-                "title": {"length": [1, 64]},
-                "content": {"length": [1, 20480]}
+                "type": {"required": true, "in": ["choice", "fill"]}, 
+                "title": {"length": [3, 64], "required": true},
+                "content": {"length": [3, 20480]},
+                "total": {"number": [0, 100], "default": 0, "required": true}
             },
-            "data.fields": {"allow": ["title", "content"]}
+            "data.field": {
+                "allow": ["type", "title", "content"]
+            }
         },
         ".remove": "$admin === true"
     }

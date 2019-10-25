@@ -81,7 +81,7 @@ app.listen(8080, () => console.log('listening on 8080'))
 
 #### 客户端使用
 
-[Javascript client sdk](https://github.com/Maslow/less-api-client-js.git)
+[Less API Javascript Client SDK](https://github.com/Maslow/less-api-client-js.git)
 
 ```sh
     npm install less-api-client
@@ -108,15 +108,11 @@ const articles = await db.collection('articles')
 
 // update document
 const updated = await db.collection('articles').doc('the-doc-id').update({
-    data: {
-        title: 'new-title'
-    }
+    title: 'new-title'
 })
 ```
 
-客户端数据操作采取了「微信云开发」的接口设计。
-
-@see 微信云开发接口文档： https://developers.weixin.qq.com/miniprogram/dev/wxcloud/reference-client-api/database/
+参考[客户端使用文档](https://github.com/Maslow/less-api-client-js/blob/master/README.md)
 
 #### 数据访问安全规则示例
 
@@ -236,8 +232,8 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 
 ### doing & todo
 
-- 实现「数据访问控制规则」
-- 提供 JS 版客户端 SDK: less-api-client-js
+- 实现「数据访问控制规则」  【Done】
+- 提供 JS 版客户端 SDK: less-api-client-js 【Done】
 - 实现服务端应用内数据操作事件，可订阅相应事件，触发更多自定义的业务逻辑
 - 基于 Mongo 的`change watch`, 实现客户端可订阅数据变更通知，服务端通过 websocket 向客户端实时推送数据变更
 - 提供 Android & iOS 客户端 SDK

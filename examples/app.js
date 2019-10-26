@@ -46,11 +46,11 @@ app.post('/entry', async (req, res) => {
     $userid: userId
   }
 
-  const matched = await entry.validate({ ...params, injections })
-  if (!matched) {
+  const [error, matched] = await entry.validate({ ...params, injections })
+  if (error) {
     return res.send({
-      code: 4,
-      data: 'permission denied'
+      code: 1,
+      data: error
     })
   }
 

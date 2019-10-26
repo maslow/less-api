@@ -72,32 +72,52 @@ class Ruler {
   async validate (params) {
     const { collection, action } = params
 
-    if (!this.collections.includes(collection)) return false
-    if (!Object.keys(actionMap).includes(action)) return false
+    let errors = []
+    if (!this.collections.includes(collection)) {
+      const err =  { type: 0, error: `collection "${collection}" not found`}
+      errors.push(err)
+      return [errors]
+    }
+
+    if (!Object.keys(actionMap).includes(action)) {
+      const err =  { type: 0, error: `action "${action}" invalid`}
+      errors.push(err)
+      return [errors]
+    }
 
     const permissionName = actionMap[action]
     const prules = this._rules[collection][permissionName]
 
-    if (!prules) return false
+    
+    if (!prules) {
+      const err =  { type: 0, error: `${collection} ${action} don't has any rules`}
+      errors.push(err)
+      return [errors]
+    }
 
     // matching permission rules
     const context = {ruler: this, ...params }
 
     let matched = null
     for (let validtrs of prules) {
-      let result = false
+      let error = null
       for (let vname in validtrs) {
-        result = await validtrs[vname].run(context)
-        if (!result) break
+        error = await validtrs[vname].run(context)
+        if (error) {
+          error = {type: vname, error}
+          break
+        }
       }
 
-      if (result) {
+      if(error) errors.push(error)
+
+      if (!error) {
         matched = validtrs
         break
       }
     }
-    if (!matched) return false
-    return matched
+    if (!matched) return [errors]
+    return [null, matched]
   }
 
 

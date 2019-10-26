@@ -8,9 +8,12 @@ function ConditionHandler (config, { ruler, query, data, injections }) {
       this._script = script
     }
     const context = { ...injections, query, data }
-    return script.runInNewContext(context)
+    const result = script.runInNewContext(context)
+    if(result) return null
+
+    return 'expression evaluted to falsy'
   } catch (error) {
-    return false
+    return error
   }
 }
 

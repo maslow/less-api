@@ -2,27 +2,31 @@ const actions = {
   READ: 'database.queryDocument',
   UPDATE: 'database.updateDocument',
   ADD: 'database.addDocument',
-  REMOVE: 'database.deleteDocument'
+  REMOVE: 'database.deleteDocument',
+  COUNT: 'database.countDocument'
 }
 
 const permissions = {
   READ: '.read',
   UPDATE: '.update',
   ADD: '.add',
-  REMOVE: '.remove'
+  REMOVE: '.remove',
+  COUNT:  '.count'
 }
 
 const actionMap = {
   [actions.READ]: '.read',
   [actions.UPDATE]: '.update',
   [actions.ADD]: '.add',
-  [actions.REMOVE]: '.remove'
+  [actions.REMOVE]: '.remove',
+  [actions.COUNT]: '.count'
 }
 const acceptParams = {
   [actions.READ]: ['query', 'order', 'offset', 'limit', 'projection', 'multi'],
   [actions.UPDATE]: ['query', 'data', 'multi', 'upsert', 'merge'],
   [actions.ADD]: ['data', 'multi'],
-  [actions.REMOVE]: ['query', 'multi']
+  [actions.REMOVE]: ['query', 'multi'],
+  [actions.COUNT]: ['query']
 }
 
 const UPDATE_COMMANDS = {

@@ -48,6 +48,10 @@ class Accessor {
             return await this._remove(collection, params)
         }
 
+        if(action === actions.COUNT) {
+            return await this._count(collection, params)
+        }
+
         throw new Error(`invalid 'action': ${action}`)
     }
 
@@ -143,6 +147,14 @@ class Accessor {
         }else{
             return await coll.deleteMany(query)
         }
+    }
+
+    async _count(collection, params){
+        const coll = this.db.collection(collection)
+
+        const  query = params.query || {}
+        const options = {}
+        return await coll.countDocuments(query, options)
     }
 
     _preprocessSort(order) {

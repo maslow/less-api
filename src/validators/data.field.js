@@ -7,10 +7,11 @@ function DataFieldHandler(config, { ruler, query, data, injections }){
         if(typeof data !== "object") return true
 
         const keys = Object.keys(data)
-        return keys.every(key => allow.includes(key))
+        const r = keys.every(key => allow.includes(key))
+        return r ? null : `only [${allow.join(',')}] allowed in data, [${keys.join(',')}] given`
     }
 
-    return false
+    return null
 }
 
 module.exports = DataFieldHandler

@@ -1,6 +1,6 @@
 {
   "name": "less-api",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "通过一套「访问控制规则」配置数据库访问，用一个 API 替代服务端 90% 的 APIs。",
   "main": "./src/index.js",
   "scripts": {
@@ -10,7 +10,8 @@
     "BaaS",
     "cloud",
     "mongo",
-    "acl"
+    "acl",
+    "serverless"
   ],
   "author": "maslow(wangfugen@126.com)",
   "license": "ISC",

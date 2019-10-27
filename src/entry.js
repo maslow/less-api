@@ -56,6 +56,12 @@ class Entry {
       }
     }
 
+    if(action === actions.COUNT) {
+      return {
+        count: result
+      }
+    }
+
     return {}
   }
 

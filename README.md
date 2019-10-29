@@ -155,9 +155,9 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
         ".add": {
             "condition": "$userid && data.createdBy === $userid",
             "data": {
-                "title": {"length": [1, 64], required: true},
+                "title": {"length": [1, 64], "required": true},
                 "content": {"length": [1, 4096]},
-                "like": { "number": [0,], default: 0}
+                "like": { "number": [0,], "default": 0}
             }
         },
         ".remove": "$userid === query.createBy || $admin === true"
@@ -182,9 +182,9 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
         ".add": {
             "condition": "$userid && $userid === data.sender",
             "data": {
-                "content": {"length": [1, 20480], required: true},
+                "content": {"length": [1, 20480], "required": true},
                 "receiver": {"exists": {"collection": "users", "field": "_id"}},
-                "read": { "in": [false], default: false }
+                "read": { "in": [false], "default": false }
             }
         },
         ".remove": false

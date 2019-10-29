@@ -22,7 +22,7 @@ class Ruler {
   }
 
   get db() {
-    return this._entry.db
+    return this._entry ? this._entry.db : null
   }
 
   load (rules) {

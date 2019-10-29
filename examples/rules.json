@@ -19,9 +19,10 @@
             "condition": "$admin === true",
             "data": { 
                 "type": {"required": true, "in": ["choice", "fill"]}, 
-                "title": {"length": [3, 64], "required": true},
+                "title": {"length": [3, 64], "required": true, "unique": true},
                 "content": {"length": [3, 20480]},
-                "total": {"number": [0, 100], "default": 0, "required": true}
+                "total": {"number": [0, 100], "default": 0, "required": true},
+                "authhor": { "exists": "/users/_id" }
             }
         },
         ".remove": "$admin === true"

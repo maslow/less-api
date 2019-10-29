@@ -1,27 +1,28 @@
 {
     "categories": {
         ".read": true,
-        ".update": "$admin === true",
-        ".add": "$admin === true",
-        ".remove": "$admin === true"
+        ".update": "$role === 'admin'",
+        ".add": "$role === 'admin'",
+        ".remove": "$role === 'admin'"
     },
     "articles": {
         ".read": true,
         ".update": {
             "condition": "$admin === true",
-            "data.valid": { 
-                "title": {"length": [1, 64]},
-                "content": {"length": [1, 20480]}
-            },
-            "data.field": {"allow": ["title", "content"]}
+            "data": { 
+                "title": {"length": [1, 64], "required": true},
+                "content": {"length": [1, 20480]},
+                "password": { "match": "^\\d{6,10}$"}
+            }
         },
         ".add": {
             "condition": "$admin === true",
-            "data.valid": { 
-                "title": {"length": [1, 64]},
-                "content": {"length": [1, 20480]}
-            },
-            "data.field": {"allow": ["title", "content"]}
+            "data": { 
+                "type": {"required": true, "in": ["choice", "fill"]}, 
+                "title": {"length": [3, 64], "required": true},
+                "content": {"length": [3, 20480]},
+                "total": {"number": [0, 100], "default": 0, "required": true}
+            }
         },
         ".remove": "$admin === true"
     }

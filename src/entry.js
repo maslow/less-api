@@ -24,12 +24,15 @@ class Entry {
   async execute (params) {
     const { action } = params
     const result = await this._accessor.execute(params)
+    
+    let data = {}
+
     if(action === actions.READ) {
-      return { list: result }
+      data = { list: result }
     }
 
     if(action === actions.UPDATE) {
-      return {
+      data = {
         upsert_id: result.upsertedId,
         updated: result.modifiedCount,
         matched: result.matchedCount
@@ -37,32 +40,21 @@ class Entry {
     }
 
     if(action === actions.ADD){
-      if(result.insertedIds){
-        return {
-          _id: result.insertedIds,
-          insertedCount: result.insertedCount
-        }
-      }
-
-      return {
-        _id: result.insertedId,
+      data = {
+        _id: result.insertedIds || result.insertedId,
         insertedCount: result.insertedCount
       }
     }
 
     if(action === actions.REMOVE) {
-      return {
-        deleted: result.deletedCount
-      }
+      data = { deleted: result.deletedCount }
     }
 
     if(action === actions.COUNT) {
-      return {
-        count: result
-      }
+      data = { count: result }
     }
 
-    return {}
+    return data
   }
 
   async validate (params) {

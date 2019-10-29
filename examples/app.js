@@ -4,9 +4,9 @@ const { Entry } = require('../src')
 const rules = {
     categories: {
         ".read": true,
-        ".update": "$admin === true",
-        ".add": "$admin === true",
-        ".remove": "$admin === true"
+        ".update": "$role === 'admin'",
+        ".add": "$role === 'admin'",
+        ".remove": "$role === 'admin'"
     }
 }
 
@@ -35,14 +35,14 @@ entry.init()
 entry.loadRules(rules)
 
 app.post('/entry', async (req, res) => {
-  const { admin, userId } = parseToken(req.headers['Authorization'])
+  const { role, userId } = parseToken(req.headers['Authorization'])
 
   const { action } = req.body
 
   const params = entry.parseParams(action, req.body)
 
   const injections = {
-    $admin: admin,
+    $role: role,
     $userid: userId
   }
 

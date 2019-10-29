@@ -7,11 +7,12 @@ function ConditionHandler (config, { ruler, query, data, injections }) {
       script = new vm.Script(config)
       this._script = script
     }
+
     const context = { ...injections, query, data }
     const result = script.runInNewContext(context)
     if(result) return null
 
-    return 'expression evaluted to falsy'
+    return 'the expression evaluated to a falsy value'
   } catch (error) {
     return error
   }

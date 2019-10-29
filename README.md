@@ -41,8 +41,7 @@ const db = {
   url: 'mongodb://localhost:27017',
   connSettings: {
     useNewUrlParser: true,
-    useUnifiedTopology: true,
-    poolSize: 10
+    useUnifiedTopology: true
   }
 }
 
@@ -61,11 +60,11 @@ app.post('/entry', async (req, res) => {
     $userid: userId
   }
 
-  const matched = await entry.validate({ ...params, injections })
-  if (!matched) {
+  const [error, matched] = await entry.validate({ ...params, injections })
+  if (error) {
     return res.send({
-      code: 4,
-      data: 'permission denied'
+      code: 1,
+      data: error
     })
   }
 
@@ -155,11 +154,11 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
     "articles": {
         ".add": {
             "condition": "$userid && data.createdBy === $userid",
-            "data.valid": {
-                "title": {"length": [1, 64]},
+            "data": {
+                "title": {"length": [1, 64], required: true},
                 "content": {"length": [1, 4096]},
-            },
-            "data.field": {"allow": ["title", "content"]},
+                "like": { "number": [0,], default: 0}
+            }
         },
         ".remove": "$userid === query.createBy || $admin === true"
     }
@@ -176,18 +175,17 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
         ".read": "$userid && ($userid === query.receiver || $userid === query.sender)",
         ".update": {
             "condition": "$userid && $userid === query.receiver",
-            "data.valid": {
+            "data": {
                 "read": {"in": [true, false]}
-            },
-            "data.field": {"allow": ["read"]}
+            }
         },
         ".add": {
             "condition": "$userid && $userid === data.sender",
-            "data.valid": {
-                "content": {"length": [1, 20480]},
-                "receiver": {"exist": {"collection": "users", "field": "_id"}}
-            },
-            "data.field": {"allow": ["sender", "receiver", "content"]}
+            "data": {
+                "content": {"length": [1, 20480], required: true},
+                "receiver": {"exists": {"collection": "users", "field": "_id"}},
+                "read": { "in": [false], default: false }
+            }
         },
         ".remove": false
     }

@@ -1,21 +1,14 @@
 const express = require('express')
 const { Entry } = require('../src')
 
-const rules = {
-    categories: {
-        ".read": true,
-        ".update": "$role === 'admin'",
-        ".add": "$role === 'admin'",
-        ".remove": "$role === 'admin'"
-    }
-}
+const rules = require('./rules.json')
 
 const app = new express()
 app.use(express.json())
 
 function parseToken(token){
   return {
-    admin: true,
+    role: 'admin',
     userId: 123
   }
 }
@@ -44,7 +37,7 @@ app.post('/entry', async (req, res) => {
   const injections = {
     $role: role,
     $userid: userId
-  }
+  } 
 
   const [error, matched] = await entry.validate({ ...params, injections })
   if (error) {

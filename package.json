@@ -1,6 +1,6 @@
 {
   "name": "less-api",
-  "version": "0.0.9",
+  "version": "0.1.2",
   "description": "通过一套「访问控制规则」配置数据库访问，用一个 API 替代服务端 90% 的 APIs。",
   "main": "./src/index.js",
   "scripts": {
@@ -16,7 +16,8 @@
   "author": "maslow(wangfugen@126.com)",
   "license": "ISC",
   "dependencies": {
-    "mongodb": "^3.3.2"
+    "mongodb": "^3.3.2",
+    "validator": "^12.0.0"
   },
   "devDependencies": {
     "express": "^4.17.1",

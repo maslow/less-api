@@ -1,18 +1,19 @@
 const assert = require('assert')
-const { Entry, Ruler, Accessor } = require('../../src/index')
+const { Entry, Ruler, MongoAccessor } = require('../../dist')
 
 describe('class Entry', () => {
+  const accessor = new MongoAccessor('test-db', 'test-url')
+
   it('constructor() ok', () => {
-    const db = { dbName: 'test', url: 'test-url' }
-    const entry = new Entry({ db })
-    assert.ok(entry._ruler instanceof Ruler)
-    assert.ok(entry._accessor instanceof Accessor)
-    assert.equal(entry._ruler.db, entry.db)
+    const entry = new Entry(accessor)
+
+    assert.ok(entry.ruler instanceof Ruler)
+    assert.ok(entry.accessor instanceof MongoAccessor)
+    assert.equal(entry.ruler.accessor, entry.accessor)
   })
 
   it('parseParams() ok', () => {
-    const db = { dbName: 'test', url: 'test-url' }
-    const entry = new Entry({ db })
+    const entry = new Entry(accessor)
 
     const reqParams = {
       collectionName: 'test-name',
@@ -21,6 +22,7 @@ describe('class Entry', () => {
     }
 
     let r = entry.parseParams('database.queryDocument', reqParams)
+    
     assert.equal(r.action, 'database.queryDocument')
     assert.equal(r.collection, 'test-name')
     assert.ok(r.query)
@@ -28,12 +30,14 @@ describe('class Entry', () => {
     assert.equal(r.query._id, 'test-id')
   })
 
-  it('parseParams() unknown action should return empty object', () => {
-    const db = { dbName: 'test', url: 'test-url' }
-    const entry = new Entry({ db })
+  it('parseParams() unknown action should get an error', () => {
+    const entry = new Entry(accessor)
 
-    const r = entry.parseParams('database.unknowAction', {})
-    assert.ok(typeof r === 'object')
-    assert.equal(Object.keys(r).length, 0)
+    try {
+      entry.parseParams('database.unknowAction', {})
+      throw new Error('should get an error but not')
+    } catch (error) {
+      assert.ok(error)
+    }
   })
 })

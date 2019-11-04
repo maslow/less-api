@@ -1,4 +1,5 @@
-const $ = require('validator')
+import { AccessorInterface } from './../../accessor/accessor';
+import * as $ from 'validator'
 
 const RULE_KEYS = [
     'required', 'in', 'default',
@@ -11,7 +12,7 @@ const RULE_KEYS = [
  * @param {Object} data data
  * @param {Object} rules validator rule of the field
  */
-async function validateField(field, data, rules, db, collection){
+export async function validateField(field: string, data: any, rules: any, accessor: AccessorInterface, collection: string) {
     if(typeof rules !== 'object') {
         return `config error: [${field}]'s rules must be an object`
     }
@@ -32,7 +33,7 @@ async function validateField(field, data, rules, db, collection){
 
     for(let name of rule_names) {
         const options = rules[name]
-        const error = await _validate(name, options, field, data, db, collection)
+        const error = await _validate(name, options, field, data, accessor, collection)
         if(error) return error
     }
 
@@ -45,7 +46,7 @@ async function validateField(field, data, rules, db, collection){
  * @param {String} field 
  * @param {Object} data 
  */
-async function _validate(ruleName, ruleOptions, field, data, db, collection) {
+async function _validate(ruleName: string, ruleOptions: any, field: string, data: any, accessor: AccessorInterface, collection: string) {
     if(!RULE_KEYS.includes(ruleName)){
         return `config error: unknown rule [${name}]`
     }
@@ -120,14 +121,12 @@ async function _validate(ruleName, ruleOptions, field, data, db, collection) {
         }
         const collName = arr[1]
         const key = arr[2]
-        const coll = db.collection(collName)
-        const ret = await coll.countDocuments({[key]: value})
+        const ret = accessor.get(collName, {[key]: value})
         if(!ret) return `${field} not exists`
     }
 
     if(ruleName === 'unique' && ruleOptions) {
-        const coll = db.collection(collection)
-        const ret = await coll.countDocuments({[field]: value})
+        const ret = accessor.get(collection, {[field]: value})
         if(ret) return `${field} exists`
     }
 
@@ -139,15 +138,10 @@ async function _validate(ruleName, ruleOptions, field, data, db, collection) {
  * @param {Array} allow_fields  fields of validator config
  * @return {String | null} error
  */
-function isAllowedFields(fields , allow_fields) {
+export function isAllowedFields(fields: string[], allow_fields: string[]): string | null{
     for(let fd of fields){
         if(!allow_fields.includes(fd))
             return `the field '${fd}' is NOT allowed]`
     }
     return null
-}
-
-module.exports = {
-    validateField, 
-    isAllowedFields
 }

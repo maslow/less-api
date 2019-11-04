@@ -1,7 +1,11 @@
+import { Handler } from './../processor';
+import { validateField, isAllowedFields } from './common/validate'
 
-const { validateField, isAllowedFields } = require('./common/validate')
+export const DataHandler: Handler = async function (config, context){
+    const { params, ruler } = context
 
-async function DataHandler(config, { ruler, query, data, collection, injections }){
+    const { data, collection } = params
+
     if(!data) return 'data is undefined'
     if(typeof data !== 'object') return 'data must be an object'
 
@@ -19,9 +23,9 @@ async function DataHandler(config, { ruler, query, data, collection, injections 
         let error = isAllowedFields(fields, allow_fields)
         if(error) return error
 
-        const db = ruler.db
-        for(let fd of allow_fields){
-            error = await validateField(fd, data, config[fd], db, collection)
+        const accessor = ruler.accessor
+        for(let field of allow_fields){
+            error = await validateField(field, data, config[field], accessor, collection)
             if(error) return error
         }
         return null
@@ -29,5 +33,3 @@ async function DataHandler(config, { ruler, query, data, collection, injections 
     
     return 'config error: config must be an array or object'
 }
-
-module.exports = DataHandler

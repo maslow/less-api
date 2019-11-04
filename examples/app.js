@@ -1,5 +1,5 @@
 const express = require('express')
-const { Entry } = require('../src')
+const { Entry, MongoAccessor } = require('../dist/commonjs')
 
 const rules = require('./rules.json')
 
@@ -14,16 +14,13 @@ function parseToken(token){
 }
 
 // @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
-const db = {
-  dbName: 'mydb',
-  url: 'mongodb://localhost:27017',
-  connSettings: {
+const dbOptions = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     poolSize: 10
-  }
 }
-const entry = new Entry({ db })
+const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', dbOptions)
+const entry = new Entry(accessor)
 entry.init()
 entry.loadRules(rules)
 
@@ -39,11 +36,11 @@ app.post('/entry', async (req, res) => {
     $userid: userId
   } 
 
-  const [error, matched] = await entry.validate({ ...params, injections })
-  if (error) {
+  const result = await entry.validate(params, injections)
+  if (result.errors) {
     return res.send({
       code: 1,
-      data: error
+      data: errors
     })
   }
 

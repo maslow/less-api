@@ -22,52 +22,55 @@
 
 ```js
 const app = require('express')()
-const { Entry } = require('less-api')
+const { Entry, MongoAccessor } = require('less-api')
+app.use(express.json())
 
+// design the access control rules
 const rules = {
     categories: {
         ".read": true,
-        ".update": "$admin === true",
-        ".add": "$admin === true",
-        ".remove": "$admin === true"
+        ".update": "$admin == true",
+        ".add": "$admin == true",
+        ".remove": "$admin == true"
     }
 }
 
-app.use(express.json())
+// init the less-api Entry & Db Accessor
 
-// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
-const db = {
-  dbName: 'mydb',
-  url: 'mongodb://localhost:27017',
-  connSettings: {
+const options = {
     useNewUrlParser: true,
-    useUnifiedTopology: true
-  }
+    useUnifiedTopology: true,
+    poolSize: 10
 }
+// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
+const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', options)
 
-const entry = new Entry({ db })
+const entry = new Entry(accessor)
 entry.init()
 entry.loadRules(rules)
 
 app.post('/entry', async (req, res) => {
-  const { admin, userId } = parseToken(req.headers['Authorization'])
+  const { admin, uid } = parseToken(req.headers['authorization'])
 
+  // parse params
   const { action } = req.body
   const params = entry.parseParams(action, req.body)
 
   const injections = {
     $admin: admin,
-    $userid: userId
+    $userid: uid
   }
 
-  const [error, matched] = await entry.validate({ ...params, injections })
-  if (error) {
+  // validate query
+  const result = await entry.validate(params, injections)
+  if (result.errors) {
     return res.send({
       code: 1,
-      data: error
+      data: errors
     })
   }
 
+  // execute query
   const data = await entry.execute(params)
   return res.send({
     code: 0,

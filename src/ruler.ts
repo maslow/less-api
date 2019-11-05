@@ -36,7 +36,7 @@ export interface ValidateResult {
 export class Ruler {
 
   private readonly entry: Entry
-  private validators: ValidatorCollection
+  readonly validators: ValidatorCollection
   private rules: InternalRules
 
   constructor(entry: Entry) {

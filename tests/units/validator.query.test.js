@@ -1,12 +1,11 @@
 const assert = require('assert')
-const {  Ruler } = require('../../src/index')
-
+const {  Ruler } = require('../../dist')
 
 
 describe('Query Validator - required', () => {
     const rules = {
         categories: {
-            ".read": {
+            ".update": {
                 condition: true,
                 query: { 
                     title: { required: true },
@@ -21,55 +20,56 @@ describe('Query Validator - required', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.queryDocument'
+        collection: 'categories', action: 'database.updateDocument'
     }
 
 
     it('query == undefined should be rejected', async () => {
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'query')
-        assert.equal(err[0].error, 'query is undefined')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.ok(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'query is undefined')
     })
 
     it('query is not object should be rejected', async () => {
         params.query = "invalid type"
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'query')
-        assert.equal(err[0].error, 'query must be an object')
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.ok(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'query must be an object')
     })
 
     it('required == true should be ok', async () => {
         params.query = {
             title: 'Title'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('empty query should be rejected', async () => {
         params.query = {
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'query')
-        assert.equal(err[0].error, 'title is required')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'title is required')
     })
 
     it('required == true should be rejected', async () => {
         params.query = {
             content: 'Content'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'query')
-        assert.equal(err[0].error, 'title is required')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'title is required')
     })
 
     it('required == false should be ok', async () => {
@@ -78,16 +78,17 @@ describe('Query Validator - required', () => {
             content: 'Content',
             author: 'Author'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 })
 
 describe('Query Validator - length', () => {
     const rules = {
         categories: {
-            ".read": {
+            ".update": {
                 condition: true,
                 query: { 
                     title: { length: [3, 6], required: true},
@@ -101,7 +102,7 @@ describe('Query Validator - length', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.queryDocument'
+        collection: 'categories', action: 'database.updateDocument'
     }
 
 
@@ -109,29 +110,30 @@ describe('Query Validator - length', () => {
         params.query = {
             title: 'abc'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('length == max should be ok', async () => {
         params.query = {
             title: '123456'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('length < min should be rejected', async () => {
         params.query = {
             title: 'ab'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'query')
-        assert.equal(err[0].error, 'length of title should >= 3 and <= 6')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'length of title should >= 3 and <= 6')
     })
     
 
@@ -139,11 +141,11 @@ describe('Query Validator - length', () => {
         params.query = {
             title: '1234567'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'query')
-        assert.equal(err[0].error, 'length of title should >= 3 and <= 6')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'length of title should >= 3 and <= 6')
     })
 
     it('length < min && require == false should be rejected', async () => {
@@ -151,18 +153,18 @@ describe('Query Validator - length', () => {
             title: 'good',
             content: 'a'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'query')
-        assert.equal(err[0].error, 'length of content should >= 3 and <= 6')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'length of content should >= 3 and <= 6')
     })
 })
 
 describe('Query Validator - default', () => {
     const rules = {
         categories: {
-            ".read": {
+            ".update": {
                 condition: true,
                 query: { 
                     title: { default: 'Default Title', required: true},
@@ -176,16 +178,16 @@ describe('Query Validator - default', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.queryDocument'
+        collection: 'categories', action: 'database.updateDocument'
     }
 
 
     it('default should be applied both required equals to true and false', async () => {
         params.query = {
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
 
         assert.equal(params.query.title, 'Default Title')
         assert.equal(params.query.content, 0)
@@ -195,9 +197,9 @@ describe('Query Validator - default', () => {
         params.query = {
             title: 'Custom Title'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
 
         assert.equal(params.query.title, 'Custom Title')
         assert.equal(params.query.content, 0)
@@ -208,9 +210,9 @@ describe('Query Validator - default', () => {
             title: 'Custom Title',
             content: 'Custom Content'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
 
         assert.equal(params.query.title, 'Custom Title')
         assert.equal(params.query.content, 'Custom Content')
@@ -220,7 +222,7 @@ describe('Query Validator - default', () => {
 describe('Query Validator - in', () => {
     const rules = {
         categories: {
-            ".read": {
+            ".update": {
                 condition: true,
                 query: { 
                     title: { in: [true, false]},
@@ -234,49 +236,52 @@ describe('Query Validator - in', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.queryDocument'
+        collection: 'categories', action: 'database.updateDocument'
     }
 
 
-    it('empty data should be ok', async () => {
+    it('empty query should be ok', async () => {
         params.query = {
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
-    it('valid data should be ok ', async () => {
+    it('valid query should be ok ', async () => {
         params.query = {
             title: false,
             content: 'China'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
-    it('invalid data should return an error ', async () => {
+    it('invalid query should return an error ', async () => {
         params.query = {
             content: 'invalid value'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'query')
-        assert.equal(err[0].error, 'invalid content')
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'invalid content')
     })
 
-    it('invalid data for boolean value should return an error ', async () => {
+    it('invalid query for boolean value should return an error ', async () => {
         params.query = {
             title: 1,
             content: 'China'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'query')
-        assert.equal(err[0].error, 'invalid title')
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'invalid title')
     })
 })
 
@@ -284,7 +289,7 @@ describe('Query Validator - in', () => {
 describe('Query Validator - number', () => {
     const rules = {
         categories: {
-            ".read": {
+            ".update": {
                 condition: true,
                 query: { 
                     total: { number: [0, 100] },
@@ -297,7 +302,7 @@ describe('Query Validator - number', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.queryDocument'
+        collection: 'categories', action: 'database.updateDocument'
     }
 
 
@@ -305,18 +310,19 @@ describe('Query Validator - number', () => {
         params.query = {
             total: 0
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('number == max should be ok', async () => {
         params.query = {
             total: 100
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('number < min should be rejected', async () => {
@@ -324,11 +330,11 @@ describe('Query Validator - number', () => {
             total: -1
         }
 
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'query')
-        assert.equal(err[0].error, 'total should >= 0 and <= 100')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'total should >= 0 and <= 100')
     })
     
 
@@ -336,11 +342,12 @@ describe('Query Validator - number', () => {
         params.query = {
             total: 101
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'query')
-        assert.equal(err[0].error, 'total should >= 0 and <= 100')
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'total should >= 0 and <= 100')
     })
 })
 
@@ -348,9 +355,9 @@ describe('Query Validator - number', () => {
 describe('Query Validator - match', () => {
     const rules = {
         categories: {
-            ".read": {
+            ".update": {
                 condition: true,
-                data: { 
+                query: { 
                     account: { match: "^\\d{6,10}$" },
                 }
             }
@@ -361,28 +368,29 @@ describe('Query Validator - match', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.queryDocument'
+        collection: 'categories', action: 'database.updateDocument'
     }
 
 
     it('match should be ok', async () => {
-        params.data = {
+        params.query = {
             account: '1234567'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('match invalid value should return an error', async () => {
-        params.data = {
+        params.query = {
             account: 'abc'
         }
-        const [err, r] = await ruler.validate(params)
-
-        assert.ok(!r)
-        assert.equal(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'account had invalid format')
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'query')
+        assert.equal(errors[0].error, 'account had invalid format')
     })
 })

@@ -10,6 +10,7 @@
     "emitDecoratorMetadata": true,
     "importHelpers": false,
     "module": "commonjs",
+    "declarationMap": true,
     // "declarationDir": "types",
     "noEmitOnError": false,
     "noFallthroughCasesInSwitch": true,
@@ -33,7 +34,7 @@
     "src/**/*"
   ],
   "exclude": [
-    "node_modules",
+    "tests_modules",
     "test"
   ]
 }

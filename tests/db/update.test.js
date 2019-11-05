@@ -1,6 +1,5 @@
 const assert = require('assert')
-const { Entry } = require('../../src/index')
-const { actions } = require('../../src/types')
+const { Entry, MongoAccessor, ActionType } = require('../../dist')
 const { dbconfig } = require('./_db')
 
 const COLL_NAME = 'test_update'
@@ -20,13 +19,15 @@ async function restoreTestData (coll) {
 describe('Database update', function () {
   this.timeout(10000)
 
-  let entry = new Entry({ db: dbconfig })
+  const accessor = new MongoAccessor(dbconfig.dbName, dbconfig.url, dbconfig.connSettings)
+  let entry = new Entry(accessor)
   let coll = null
+
   before(async () => {
     await entry.init()
 
     // insert data
-    coll = entry.db.collection(COLL_NAME)
+    coll = accessor.db.collection(COLL_NAME)
     await restoreTestData(coll)
   })
 
@@ -35,7 +36,7 @@ describe('Database update', function () {
 
     let params = {
       collection: COLL_NAME,
-      action: actions.UPDATE,
+      action: ActionType.UPDATE,
       query: {},
       data: { title: 'title-updated-1' },
       merge: true
@@ -61,7 +62,7 @@ describe('Database update', function () {
 
     let params = {
       collection: COLL_NAME,
-      action: actions.UPDATE,
+      action: ActionType.UPDATE,
       query: {
         title: TEST_DATA[0].title
       },
@@ -83,7 +84,7 @@ describe('Database update', function () {
 
     let params = {
       collection: COLL_NAME,
-      action: actions.UPDATE,
+      action: ActionType.UPDATE,
       query: {
         title: TEST_DATA[0].title
       },
@@ -109,7 +110,7 @@ describe('Database update', function () {
 
     let params = {
       collection: COLL_NAME,
-      action: actions.UPDATE,
+      action: ActionType.UPDATE,
       query: {
         title: TEST_DATA[0].title
       },
@@ -138,7 +139,7 @@ describe('Database update', function () {
 
     let params = {
       collection: COLL_NAME,
-      action: actions.UPDATE,
+      action: ActionType.UPDATE,
       query: {},
       data: {
         title: 'title-updated-all'
@@ -167,7 +168,7 @@ describe('Database update', function () {
 
     let params = {
       collection: COLL_NAME,
-      action: actions.UPDATE,
+      action: ActionType.UPDATE,
       query: {
         $or: [
           {title: TEST_DATA[0].title}, 
@@ -198,7 +199,7 @@ describe('Database update', function () {
 
     let params = {
       collection: COLL_NAME,
-      action: actions.UPDATE,
+      action: ActionType.UPDATE,
       query: {
         title: TEST_DATA[0].title
       },
@@ -220,7 +221,7 @@ describe('Database update', function () {
 
     let params = {
       collection: COLL_NAME,
-      action: actions.UPDATE,
+      action: ActionType.UPDATE,
       query: {
         title: TEST_DATA[0].title
       },
@@ -246,8 +247,7 @@ describe('Database update', function () {
   })
 
   after(async () => {
-    const coll = entry.db.collection(COLL_NAME)
     await coll.deleteMany({})
-    if (entry) entry._accessor._conn.close()
+    if (entry) accessor.conn.close()
   })
 })

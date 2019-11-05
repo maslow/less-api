@@ -204,7 +204,7 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 #### 单元测试
 
 ```sh
-    mocha tests/units/*
+    mocha tests/units/*.test.js
 ```
 
 #### 数据库访问测试
@@ -213,19 +213,19 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 
 ```sh
     docker pull mongo
-    docker run -p 27017:27017 --name mongodb_for_test -d mongo
+    docker run -p 27017:27017 --name mongotest -d mongo
 ```
 
 执行测试用例
 
 ```sh
-    mocha tests/db/*
+    mocha tests/db/*.test.js
 ```
 
 停止&删除 Mongo 实例
 
 ```sh
-    docker rm -f mongodb_for_test
+    docker rm -f mongotest
 ```
 
 ### doing & todo
@@ -235,4 +235,5 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 - 实现服务端应用内数据操作事件，可订阅相应事件，触发更多自定义的业务逻辑
 - 基于 Mongo 的`change watch`, 实现客户端可订阅数据变更通知，服务端通过 websocket 向客户端实时推送数据变更
 - 提供 Android & iOS 客户端 SDK
+- 支持微信小程序云开发数据库
 - 支持 MySQL 等关系型数据库

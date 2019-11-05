@@ -1,6 +1,5 @@
 const assert = require('assert')
-const {  Ruler } = require('../../src/index')
-
+const {  Ruler } = require('../../dist')
 
 
 describe('Data Validator - required', () => {
@@ -26,50 +25,51 @@ describe('Data Validator - required', () => {
 
 
     it('data == undefined should be rejected', async () => {
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'data is undefined')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.ok(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'data is undefined')
     })
 
     it('data is not object should be rejected', async () => {
         params.data = "invalid type"
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'data must be an object')
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.ok(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'data must be an object')
     })
 
     it('required == true should be ok', async () => {
         params.data = {
             title: 'Title'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('empty data should be rejected', async () => {
         params.data = {
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'title is required')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'title is required')
     })
 
     it('required == true should be rejected', async () => {
         params.data = {
             content: 'Content'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'title is required')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'title is required')
     })
 
     it('required == false should be ok', async () => {
@@ -78,9 +78,10 @@ describe('Data Validator - required', () => {
             content: 'Content',
             author: 'Author'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 })
 
@@ -109,29 +110,30 @@ describe('Data Validator - length', () => {
         params.data = {
             title: 'abc'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('length == max should be ok', async () => {
         params.data = {
             title: '123456'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('length < min should be rejected', async () => {
         params.data = {
             title: 'ab'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'length of title should >= 3 and <= 6')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'length of title should >= 3 and <= 6')
     })
     
 
@@ -139,11 +141,11 @@ describe('Data Validator - length', () => {
         params.data = {
             title: '1234567'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'length of title should >= 3 and <= 6')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'length of title should >= 3 and <= 6')
     })
 
     it('length < min && require == false should be rejected', async () => {
@@ -151,11 +153,11 @@ describe('Data Validator - length', () => {
             title: 'good',
             content: 'a'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'length of content should >= 3 and <= 6')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'length of content should >= 3 and <= 6')
     })
 })
 
@@ -183,9 +185,9 @@ describe('Data Validator - default', () => {
     it('default should be applied both required equals to true and false', async () => {
         params.data = {
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
 
         assert.equal(params.data.title, 'Default Title')
         assert.equal(params.data.content, 0)
@@ -195,9 +197,9 @@ describe('Data Validator - default', () => {
         params.data = {
             title: 'Custom Title'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
 
         assert.equal(params.data.title, 'Custom Title')
         assert.equal(params.data.content, 0)
@@ -208,9 +210,9 @@ describe('Data Validator - default', () => {
             title: 'Custom Title',
             content: 'Custom Content'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
 
         assert.equal(params.data.title, 'Custom Title')
         assert.equal(params.data.content, 'Custom Content')
@@ -241,9 +243,9 @@ describe('Data Validator - in', () => {
     it('empty data should be ok', async () => {
         params.data = {
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('valid data should be ok ', async () => {
@@ -251,20 +253,22 @@ describe('Data Validator - in', () => {
             title: false,
             content: 'China'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('invalid data should return an error ', async () => {
         params.data = {
             content: 'invalid value'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'invalid content')
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'invalid content')
     })
 
     it('invalid data for boolean value should return an error ', async () => {
@@ -272,11 +276,12 @@ describe('Data Validator - in', () => {
             title: 1,
             content: 'China'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'invalid title')
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'invalid title')
     })
 })
 
@@ -305,18 +310,19 @@ describe('Data Validator - number', () => {
         params.data = {
             total: 0
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('number == max should be ok', async () => {
         params.data = {
             total: 100
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('number < min should be rejected', async () => {
@@ -324,11 +330,11 @@ describe('Data Validator - number', () => {
             total: -1
         }
 
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'total should >= 0 and <= 100')
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'total should >= 0 and <= 100')
     })
     
 
@@ -336,11 +342,12 @@ describe('Data Validator - number', () => {
         params.data = {
             total: 101
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(!r)
-        assert.ok(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'total should >= 0 and <= 100')
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'total should >= 0 and <= 100')
     })
 })
 
@@ -369,20 +376,21 @@ describe('Data Validator - match', () => {
         params.data = {
             account: '1234567'
         }
-        const [err, r] = await ruler.validate(params)
-        assert.ok(r)
-        assert.ok(!err)
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('match invalid value should return an error', async () => {
         params.data = {
             account: 'abc'
         }
-        const [err, r] = await ruler.validate(params)
-
-        assert.ok(!r)
-        assert.equal(err.length, 1)
-        assert.equal(err[0].type, 'data')
-        assert.equal(err[0].error, 'account had invalid format')
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'account had invalid format')
     })
 })

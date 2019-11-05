@@ -1,6 +1,6 @@
 const assert = require('assert')
-const { Entry } = require('../../src/index')
-const { actions } = require('../../src/types')
+const { Entry, MongoAccessor, ActionType } = require('../../dist')
+
 const { dbconfig } = require('./_db')
 
 const COLL_NAME = 'test_add'
@@ -12,13 +12,15 @@ async function restoreTestData (coll) {
 describe('Database add', function () {
     this.timeout(10000)
 
-    let entry = new Entry({ db: dbconfig })
+    const accessor = new MongoAccessor(dbconfig.dbName, dbconfig.url, dbconfig.connSettings)
+    let entry = new Entry(accessor)
     let coll = null
+
     before(async () => {
         await entry.init()
 
         // insert data
-        coll = entry.db.collection(COLL_NAME)
+        coll = accessor.db.collection(COLL_NAME)
         await restoreTestData(coll)
     })
 
@@ -27,7 +29,7 @@ describe('Database add', function () {
     
         let params = {
           collection: COLL_NAME,
-          action: actions.ADD,
+          action: ActionType.ADD,
           data: { title: 'title-1', content: 'content-1' },
         }
         const r = await entry.execute(params)
@@ -50,7 +52,7 @@ describe('Database add', function () {
         ]
         let params = {
           collection: COLL_NAME,
-          action: actions.ADD,
+          action: ActionType.ADD,
           data: TEST_DATA,
           multi: true
         }
@@ -80,7 +82,7 @@ describe('Database add', function () {
         ]
         let params = {
           collection: COLL_NAME,
-          action: actions.ADD,
+          action: ActionType.ADD,
           data: TEST_DATA,
           multi: false
         }
@@ -93,8 +95,7 @@ describe('Database add', function () {
     })
 
     after(async () => {
-        const coll = entry.db.collection(COLL_NAME)
         await coll.deleteMany({})
-        if (entry) entry._accessor._conn.close()
+        if (entry)  accessor.conn.close()
     })
 })

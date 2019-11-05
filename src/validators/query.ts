@@ -6,8 +6,8 @@ export const QueryHandler: Handler = async function (config, context){
 
     const { query, collection } = params
 
-    if(!query) return 'data is undefined'
-    if(typeof query !== 'object') return 'data must be an object'
+    if(!query) return 'query is undefined'
+    if(typeof query !== 'object') return 'query must be an object'
 
     const fields = Object.keys(query)
     let allow_fields = []

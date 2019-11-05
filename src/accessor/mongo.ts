@@ -7,9 +7,9 @@ import { MongoClient, ObjectID, MongoClientOptions, Db } from 'mongodb'
 export class MongoAccessor implements AccessorInterface {
 
     readonly type: string = 'mongo'
-    private db_name: string
-    private conn: MongoClient
-    private db: Db
+    readonly db_name: string
+    readonly conn: MongoClient
+    db: Db
 
     /**
      * @see https://mongodb.github.io/node-mongodb-native/3.3/reference/connecting/connection-settings/
@@ -17,7 +17,7 @@ export class MongoAccessor implements AccessorInterface {
     constructor(db: string, url: string, options?: MongoClientOptions) {
         this.db_name = db
         this.conn = new MongoClient(url, options || {})
-        this.db = null
+        this.db = null as Db
     }
 
     async init() {

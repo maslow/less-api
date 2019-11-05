@@ -1,6 +1,5 @@
 const assert = require('assert')
-const { Entry } = require('../../src/index')
-const { actions } = require('../../src/types')
+const { Entry, MongoAccessor, ActionType } = require('../../dist')
 const { dbconfig } = require('./_db')
 
 const COLL_NAME = 'test_remove'
@@ -19,13 +18,15 @@ async function restoreTestData (coll) {
 describe('Database remove', function () {
   this.timeout(10000)
 
-  let entry = new Entry({ db: dbconfig })
+  const accessor = new MongoAccessor(dbconfig.dbName, dbconfig.url, dbconfig.connSettings)
+  let entry = new Entry(accessor)
   let coll = null
+
   before(async () => {
     await entry.init()
 
     // insert data
-    coll = entry.db.collection(COLL_NAME)
+    coll = accessor.db.collection(COLL_NAME)
     await restoreTestData(coll)
   })
 
@@ -34,7 +35,7 @@ describe('Database remove', function () {
 
     const params = {
       collection: COLL_NAME,
-      action: actions.REMOVE,
+      action: ActionType.REMOVE,
       multi: true
     }
     const r = await entry.execute(params)
@@ -49,7 +50,7 @@ describe('Database remove', function () {
 
     const params = {
       collection: COLL_NAME,
-      action: actions.REMOVE,
+      action: ActionType.REMOVE,
       query: { title: 'title-1' }
     }
     const r = await entry.execute(params)
@@ -66,7 +67,7 @@ describe('Database remove', function () {
 
     const params = {
       collection: COLL_NAME,
-      action: actions.REMOVE,
+      action: ActionType.REMOVE,
       query: {
         $or: [{ title: 'title-1' }, { title: 'title-2' }]
       },
@@ -83,8 +84,7 @@ describe('Database remove', function () {
   })
 
   after(async () => {
-    const coll = entry.db.collection(COLL_NAME)
     await coll.deleteMany({})
-    if (entry) entry._accessor._conn.close()
+    if (entry) accessor.conn.close()
   })
 })

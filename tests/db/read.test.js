@@ -1,6 +1,6 @@
 const assert = require('assert')
-const { Entry } = require('../../src/index')
-const { actions } = require('../../src/types')
+const { Entry, MongoAccessor, ActionType } = require('../../dist')
+
 const { dbconfig } = require('./_db')
 
 const TEST_DATA = [
@@ -12,13 +12,15 @@ const TEST_DATA = [
 describe('Database read', function () {
   this.timeout(10000)
 
-  let entry = new Entry({ db: dbconfig })
+  const accessor = new MongoAccessor(dbconfig.dbName, dbconfig.url, dbconfig.connSettings)
+  let entry = new Entry(accessor)
+  let coll = null
 
   before(async () => {
     await entry.init()
 
     // insert data
-    const coll = entry.db.collection('test_read')
+    coll = accessor.db.collection('test_read')
     await coll.deleteMany({})
     const r = await coll.insertMany(TEST_DATA)
     assert.equal(r.insertedCount, TEST_DATA.length)
@@ -27,7 +29,7 @@ describe('Database read', function () {
   it('read all without query should be ok', async () => {
     let params = {
       collection: 'test_read',
-      action: actions.READ
+      action: ActionType.READ
     }
     const data = await entry.execute(params)
     assert.ok(data.list instanceof Array)
@@ -37,7 +39,7 @@ describe('Database read', function () {
   it('read with query should be ok', async () => {
     let params = {
       collection: 'test_read',
-      action: actions.READ,
+      action: ActionType.READ,
       query: { title: TEST_DATA[0].title }
     }
     const data = await entry.execute(params)
@@ -49,7 +51,7 @@ describe('Database read', function () {
   it('read with order(desc) should be ok', async () => {
     let params = {
       collection: 'test_read',
-      action: actions.READ,
+      action: ActionType.READ,
       query: {},
       order: [{ field: 'title', direction: 'desc' }]
     }
@@ -63,7 +65,7 @@ describe('Database read', function () {
   it('read with order(asc) should be ok', async () => {
     let params = {
       collection: 'test_read',
-      action: actions.READ,
+      action: ActionType.READ,
       query: {},
       order: [{ field: 'title', direction: 'asc' }]
     }
@@ -76,7 +78,7 @@ describe('Database read', function () {
   it('read with offset should be ok', async () => {
     let params = {
       collection: 'test_read',
-      action: actions.READ,
+      action: ActionType.READ,
       query: {},
       offset: 1
     }
@@ -89,7 +91,7 @@ describe('Database read', function () {
   it('read with exceed offset should be ok', async () => {
     let params = {
       collection: 'test_read',
-      action: actions.READ,
+      action: ActionType.READ,
       query: {},
       offset: 99999
     }
@@ -101,7 +103,7 @@ describe('Database read', function () {
   it('read with limit = 0 should be ok', async () => {
     let params = {
       collection: 'test_read',
-      action: actions.READ,
+      action: ActionType.READ,
       query: {},
       order: [{ field: 'title', direction: 'asc' }],
       limit: 0
@@ -115,7 +117,7 @@ describe('Database read', function () {
   it('read with limit should be ok', async () => {
     let params = {
       collection: 'test_read',
-      action: actions.READ,
+      action: ActionType.READ,
       query: {},
       limit: 1
     }
@@ -128,7 +130,7 @@ describe('Database read', function () {
   it('read with projection should be ok', async () => {
     let params = {
       collection: 'test_read',
-      action: actions.READ,
+      action: ActionType.READ,
       query: {},
       projection: { title: 1 }
     }
@@ -141,8 +143,8 @@ describe('Database read', function () {
   })
 
   after(async () => {
-    const coll = entry.db.collection('test_read')
+
     await coll.deleteMany({})
-    if (entry) entry._accessor._conn.close()
+    if (entry) accessor.conn.close()
   })
 })

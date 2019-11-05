@@ -268,7 +268,6 @@ describe('Query Validator - in', () => {
         assert.ok(!matched)
         assert.equal(errors.length, 1)
         assert.equal(errors[0].type, 'query')
-        assert.equal(errors[0].error, 'invalid content')
     })
 
     it('invalid query for boolean value should return an error ', async () => {
@@ -281,7 +280,6 @@ describe('Query Validator - in', () => {
         assert.ok(!matched)
         assert.equal(errors.length, 1)
         assert.equal(errors[0].type, 'query')
-        assert.equal(errors[0].error, 'invalid title')
     })
 })
 
@@ -392,5 +390,60 @@ describe('Query Validator - match', () => {
         assert.equal(errors.length, 1)
         assert.equal(errors[0].type, 'query')
         assert.equal(errors[0].error, 'account had invalid format')
+    })
+})
+
+
+describe('Query validator - Condition', () => {
+    const rules = {
+        categories: {
+            ".update": {
+                condition: true,
+                query: { 
+                    author_id: "$userid == $value",
+                    createdBy: {
+                        condition: "$userid == $value"
+                    }
+                }
+            }
+        }
+    }
+
+    const ruler = new Ruler()
+    ruler.load(rules)
+
+    let params = {
+        collection: 'categories', action: 'database.updateDocument'
+    }
+
+    it('query condition should be ok', async () => {
+        params.query = {
+            author_id: 123,
+            createdBy: 123
+        }
+        
+        const injections = {
+            $userid: 123
+        }
+        
+        const { matched, errors } = await ruler.validate(params, injections)
+        assert.ok(matched)
+        assert.ok(!errors)
+    })
+
+    it('query condition should be rejected', async () => {
+        params.query = {
+            author_id: 1,
+            createdBy: 2
+        }
+        
+        const injections = {
+            $userid: 123
+        }
+        
+        const { matched, errors } = await ruler.validate(params, injections)
+        assert.ok(!matched)
+        assert.ok(errors)
+        assert.equal(errors[0].type, 'query')
     })
 })

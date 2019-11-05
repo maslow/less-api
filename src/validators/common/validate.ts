@@ -1,28 +1,33 @@
-import { AccessorInterface } from './../../accessor/accessor';
+
 import * as $ from 'validator'
+import * as vm from 'vm'
+import { HandlerContext } from '../../processor'
+import { flattenData } from './utils'
 
 const RULE_KEYS = [
     'required', 'in', 'default',
     'length', 'number', 'unique',
-    'match', 'exists'
+    'match', 'exists', 'condition'
 ]
 
-/**
- * @param {String} field key of data
- * @param {Object} data data
- * @param {Object} rules validator rule of the field
- */
-export async function validateField(field: string, data: any, rules: any, accessor: AccessorInterface, collection: string) {
+
+export async function validateField(field: string, data: any, rules: any, context: HandlerContext) {
+    if(typeof rules === 'string'){
+        rules = { condition: rules }
+    }
+
     if(typeof rules !== 'object') {
         return `config error: [${field}]'s rules must be an object`
     }
 
+    const flatten = flattenData(data)
+
     // if required == true
     const isRequired = rules['required'] == true
-    if(data[field] === undefined || data[field] === null) {
+    if(flatten[field] === undefined || flatten[field] === null) {
         // if default
         if(rules['default'] !== undefined && rules['default'] !== null) {
-            data[field] = rules['default']
+            flatten[field] = data[field] = rules['default']
         }else{
             return isRequired ? `${field} is required` : null
         }
@@ -33,25 +38,28 @@ export async function validateField(field: string, data: any, rules: any, access
 
     for(let name of rule_names) {
         const options = rules[name]
-        const error = await _validate(name, options, field, data, accessor, collection)
+        const error = await _validate(name, options, field, flatten, context)
         if(error) return error
     }
 
     return null
 }
 
-/**
- * @param {String} ruleName 
- * @param {Any} ruleOptions 
- * @param {String} field 
- * @param {Object} data 
- */
-async function _validate(ruleName: string, ruleOptions: any, field: string, data: any, accessor: AccessorInterface, collection: string) {
+async function _validate(ruleName: string, ruleOptions: any, field: string, data: any, context: HandlerContext) {
     if(!RULE_KEYS.includes(ruleName)){
-        return `config error: unknown rule [${name}]`
+        return `config error: unknown rule [${ruleName}]`
     }
 
     const value = data[field]
+
+    if(ruleName === 'condition'){
+        const script = new vm.Script(ruleOptions)
+        const { injections } =  context
+    
+        const global = { ...injections, $value: value }
+        const result = script.runInNewContext(global)
+        if(!result) return `condition evaluted to false`
+    }
 
     if(ruleName === 'in') {
         if(!(ruleOptions instanceof Array)) {
@@ -59,7 +67,8 @@ async function _validate(ruleName: string, ruleOptions: any, field: string, data
         }
 
         if(!ruleOptions.includes(value)){
-            return `invalid ${field}`
+            const str = ruleOptions.join(',')
+            return `${field} should equal to one of [${str}]`
         }
     }
 
@@ -119,6 +128,7 @@ async function _validate(ruleName: string, ruleOptions: any, field: string, data
         if(arr.length !== 3){
             return `config error: invalid config of ${field}#exists`
         }
+        const accessor = context.ruler.accessor
         const collName = arr[1]
         const key = arr[2]
         const ret = accessor.get(collName, {[key]: value})
@@ -126,6 +136,8 @@ async function _validate(ruleName: string, ruleOptions: any, field: string, data
     }
 
     if(ruleName === 'unique' && ruleOptions) {
+        const accessor = context.ruler.accessor
+        const collection = context.params.collection
         const ret = accessor.get(collection, {[field]: value})
         if(ret) return `${field} exists`
     }

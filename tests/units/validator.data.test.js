@@ -268,7 +268,6 @@ describe('Data Validator - in', () => {
         assert.ok(!matched)
         assert.equal(errors.length, 1)
         assert.equal(errors[0].type, 'data')
-        assert.equal(errors[0].error, 'invalid content')
     })
 
     it('invalid data for boolean value should return an error ', async () => {
@@ -281,7 +280,6 @@ describe('Data Validator - in', () => {
         assert.ok(!matched)
         assert.equal(errors.length, 1)
         assert.equal(errors[0].type, 'data')
-        assert.equal(errors[0].error, 'invalid title')
     })
 })
 
@@ -392,5 +390,102 @@ describe('Data Validator - match', () => {
         assert.equal(errors.length, 1)
         assert.equal(errors[0].type, 'data')
         assert.equal(errors[0].error, 'account had invalid format')
+    })
+})
+
+
+describe('Data validator - Flatten Data', () => {
+    const rules = {
+        categories: {
+            ".update": {
+                condition: true,
+                data: { 
+                    title: { required: true },
+                    content: { required: true },
+                    author: { required: true },
+                    age: { number: [0, 100]},
+                    gender: { in: [0, 1], default: 1 }
+                }
+            }
+        }
+    }
+
+    const ruler = new Ruler()
+    ruler.load(rules)
+
+    let params = {
+        collection: 'categories', action: 'database.updateDocument'
+    }
+
+    it('flatten data should be ok', async () => {
+        params.data = {
+            title: 'title',
+            $set: {
+                content: 'content',
+                author: 123
+            },
+            $inc: {
+                age: 1
+            }
+        }
+        
+        const { matched, errors } = await ruler.validate(params, {})
+        assert.ok(matched)
+        assert.ok(!errors)
+        assert.equal(params.data.gender, 1)
+    })
+})
+
+describe('Data validator - Condition', () => {
+    const rules = {
+        categories: {
+            ".update": {
+                condition: true,
+                data: { 
+                    author_id: "$userid == $value",
+                    createdBy: {
+                        condition: "$userid == $value"
+                    }
+                }
+            }
+        }
+    }
+
+    const ruler = new Ruler()
+    ruler.load(rules)
+
+    let params = {
+        collection: 'categories', action: 'database.updateDocument'
+    }
+
+    it('data condition should be ok', async () => {
+        params.data = {
+            author_id: 123,
+            createdBy: 123
+        }
+        
+        const injections = {
+            $userid: 123
+        }
+        
+        const { matched, errors } = await ruler.validate(params, injections)
+        assert.ok(matched)
+        assert.ok(!errors)
+    })
+
+    it('data condition should be rejected', async () => {
+        params.data = {
+            author_id: 1,
+            createdBy: 2
+        }
+        
+        const injections = {
+            $userid: 123
+        }
+        
+        const { matched, errors } = await ruler.validate(params, injections)
+        assert.ok(!matched)
+        assert.ok(errors)
+        assert.equal(errors[0].type, 'data')
     })
 })

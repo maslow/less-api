@@ -1,15 +1,16 @@
 import { Handler } from './../processor';
 import { validateField, isAllowedFields } from './common/validate'
+import { flattenData } from './common/utils';
+
 
 export const DataHandler: Handler = async function (config, context){
-    const { params, ruler } = context
-
-    const { data, collection } = params
-
+    const { data } = context.params
+    
     if(!data) return 'data is undefined'
     if(typeof data !== 'object') return 'data must be an object'
 
-    const fields = Object.keys(data)
+    const flatten = flattenData(data)
+    const fields = Object.keys(flatten)
     let allow_fields = []
 
     if(config instanceof Array){
@@ -23,9 +24,8 @@ export const DataHandler: Handler = async function (config, context){
         let error = isAllowedFields(fields, allow_fields)
         if(error) return error
 
-        const accessor = ruler.accessor
         for(let field of allow_fields){
-            error = await validateField(field, data, config[field], accessor, collection)
+            error = await validateField(field, data, config[field], context)
             if(error) return error
         }
         return null

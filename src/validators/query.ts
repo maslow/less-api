@@ -2,9 +2,8 @@ import { Handler } from './../processor';
 import { validateField, isAllowedFields } from './common/validate'
 
 export const QueryHandler: Handler = async function (config, context){
-    const { params, ruler } = context
 
-    const { query, collection } = params
+    const { query } = context.params
 
     if(!query) return 'query is undefined'
     if(typeof query !== 'object') return 'query must be an object'
@@ -23,9 +22,8 @@ export const QueryHandler: Handler = async function (config, context){
         let error = isAllowedFields(fields, allow_fields)
         if(error) return error
 
-        const accessor = ruler.accessor
         for(let field of allow_fields){
-            error = await validateField(field, query, config[field], accessor, collection)
+            error = await validateField(field, query, config[field], context)
             if(error) return error
         }
         return null

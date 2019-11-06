@@ -26,7 +26,7 @@
                 "title": {"length": [4, 64], "required": true, "unique": true},
                 "content": {"length": [4, 20480]},
                 "total": {"number": [0, 100], "default": 0, "required": true},
-                "author_id": { "condition": "value == $userid" }
+                "author_id": { "condition": "$value == $userid" }
             }
         },
         ".remove": {

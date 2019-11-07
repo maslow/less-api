@@ -2,7 +2,7 @@ import { UPDATE_COMMANDS } from "../../types"
 
 
 /**
-{
+data: {
     title: '',
     $set: {
         content: '',
@@ -16,7 +16,6 @@ import { UPDATE_COMMANDS } from "../../types"
     },
 }
 */
-
 export function flattenData(data: any = {}): object{
     const arr = Object.values(UPDATE_COMMANDS)
     const operators = new Set<string>(arr)
@@ -34,4 +33,12 @@ export function flattenData(data: any = {}): object{
         }
     }
     return result
+}
+
+export function isAllowedFields(fields: string[], allow_fields: string[]): string | null{
+    for(let fd of fields){
+        if(!allow_fields.includes(fd))
+            return `the field '${fd}' is NOT allowed]`
+    }
+    return null
 }

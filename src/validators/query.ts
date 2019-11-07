@@ -1,5 +1,6 @@
 import { Handler } from './../processor';
-import { validateField, isAllowedFields } from './common/validate'
+import { validateField } from './common/validate'
+import { isAllowedFields } from './common/utils'
 
 export const QueryHandler: Handler = async function (config, context){
 

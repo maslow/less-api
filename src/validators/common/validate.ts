@@ -144,16 +144,3 @@ async function _validate(ruleName: string, ruleOptions: any, field: string, data
 
     return null
 }
-
-/**
- * @param {Array} fields fields of data
- * @param {Array} allow_fields  fields of validator config
- * @return {String | null} error
- */
-export function isAllowedFields(fields: string[], allow_fields: string[]): string | null{
-    for(let fd of fields){
-        if(!allow_fields.includes(fd))
-            return `the field '${fd}' is NOT allowed]`
-    }
-    return null
-}

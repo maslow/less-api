@@ -64,7 +64,7 @@ export class MongoAccessor implements AccessorInterface {
         return await coll.findOne(query)
     }
 
-    private async read(collection: string, params: Params): Promise<ReadResult> {
+    protected async read(collection: string, params: Params): Promise<ReadResult> {
         const coll = this.db.collection(collection)
 
         let { query, order, offset, limit, projection } = params
@@ -83,7 +83,7 @@ export class MongoAccessor implements AccessorInterface {
         return { list: data }
     }
 
-    private async update(collection: string, params: Params): Promise<UpdateResult> {
+    protected async update(collection: string, params: Params): Promise<UpdateResult> {
         const coll = this.db.collection(collection)
 
         let { query, data, multi, upsert, merge } = params
@@ -148,7 +148,7 @@ export class MongoAccessor implements AccessorInterface {
         }
     }
 
-    private async add(collection: string, params: Params): Promise<AddResult> {
+    protected async add(collection: string, params: Params): Promise<AddResult> {
         const coll = this.db.collection(collection)
         let { data, multi } = params
         data = data || {}
@@ -166,7 +166,7 @@ export class MongoAccessor implements AccessorInterface {
         }
     }
 
-    private async remove(collection: string, params: Params): Promise<RemoveResult> {
+    protected async remove(collection: string, params: Params): Promise<RemoveResult> {
         const coll = this.db.collection(collection)
         let { query, multi } = params
         query = query || {}
@@ -181,7 +181,7 @@ export class MongoAccessor implements AccessorInterface {
         }
     }
 
-    private async count(collection: string, params: Params): Promise<CountResult> {
+    protected async count(collection: string, params: Params): Promise<CountResult> {
         const coll = this.db.collection(collection)
 
         const query = params.query || {}
@@ -192,7 +192,7 @@ export class MongoAccessor implements AccessorInterface {
         }
     }
 
-    private processOrder(order: Order[]) {
+    protected processOrder(order: Order[]) {
         if (!(order instanceof Array))
             return undefined
 

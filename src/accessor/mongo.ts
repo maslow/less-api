@@ -1,6 +1,5 @@
-import * as assert from 'assert'
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
-import { Params, ActionType, UPDATE_COMMANDS, Order, Direction } from './../types'
+import { Params, ActionType, Order, Direction } from './../types'
 import { MongoClient, ObjectID, MongoClientOptions, Db } from 'mongodb'
 
 
@@ -94,43 +93,14 @@ export class MongoAccessor implements AccessorInterface {
         let options = {} as any
         if (upsert) options.upsert = upsert
 
-        const OPTRS = Object.values(UPDATE_COMMANDS)
-
-        // process update operators
+        // merge 不为 true 代表替换操作，暂只允许单条替换
         if (!merge) {
-            // check if any operator exists
-            let hasOperator = false
-            const checkMixed = objs => {
-                if (typeof objs !== 'object') return
-
-                for (let key in objs) {
-                    if (OPTRS.includes(key)) {
-                        hasOperator = true
-                    } else if (typeof objs[key] === 'object') {
-                        checkMixed(objs[key])
-                    }
-                }
-            }
-            checkMixed(data)
-
-            assert.ok(!hasOperator, 'data must not contain any operator while `merge` with false')
             let result: any = await coll.replaceOne(query, data, options)
             return {
                 upsert_id: result.upsertedId,
                 updated: result.modifiedCount,
                 matched: result.matchedCount
             }
-        }
-
-        // add default operator($set) for non-operator-object if merge === true
-        for (let key in data) {
-            if (OPTRS.includes(key))
-                continue
-
-            data[UPDATE_COMMANDS.SET] = {
-                [key]: data[key]
-            }
-            delete data[key]
         }
 
         let result: any

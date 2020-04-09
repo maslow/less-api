@@ -38,7 +38,11 @@ describe('Database update', function () {
       collection: COLL_NAME,
       action: ActionType.UPDATE,
       query: {},
-      data: { title: 'title-updated-1' },
+      data: { 
+        $set: {
+          title: 'title-updated-1' 
+        }
+      },
       merge: true
     }
     const result = await entry.execute(params)
@@ -66,7 +70,11 @@ describe('Database update', function () {
       query: {
         title: TEST_DATA[0].title
       },
-      data: { title: 'title-updated-1' },
+      data: { 
+        $set: {
+          title: 'title-updated-1' 
+        }
+      },
       merge: true
     }
     const result = await entry.execute(params)
@@ -115,7 +123,7 @@ describe('Database update', function () {
         title: TEST_DATA[0].title
       },
       data: {
-        title: 'title-updated-1',
+        $set: { title: 'title-updated-1'},
         $push: {
             arr: 'item'
         }
@@ -141,8 +149,10 @@ describe('Database update', function () {
       collection: COLL_NAME,
       action: ActionType.UPDATE,
       query: {},
-      data: {
-        title: 'title-updated-all'
+      data: { 
+        $set: {
+          title: 'title-updated-all' 
+        }
       },
       merge: true,
       multi: true
@@ -175,8 +185,10 @@ describe('Database update', function () {
           {title: TEST_DATA[1].title}
         ]
       },
-      data: {
-        title: 'title-updated-all'
+      data: { 
+        $set: {
+          title: 'title-updated-all' 
+        }
       },
       merge: true,
       multi: true
@@ -214,36 +226,6 @@ describe('Database update', function () {
     const [updated] = await coll.find().toArray()
     assert.equal(updated.title, 'title-updated-1') // changed
     assert.equal(updated.content, undefined) // replaced
-  })
-
-  it('replace one while operator exists in data should throw error', async () => {
-    await restoreTestData(coll)
-
-    let params = {
-      collection: COLL_NAME,
-      action: ActionType.UPDATE,
-      query: {
-        title: TEST_DATA[0].title
-      },
-      data: { title: 'title-updated-1', $set: { test: 'nonsense' } },
-      merge: false
-    }
-    try {
-      await entry.execute(params)
-      assert.ok(false, 'no exception thrown')
-    } catch (error) {
-      assert.ok(
-        error
-          .toString()
-          .indexOf(
-            'data must not contain any operator while `merge` with false'
-          ) > 0
-      )
-    }
-
-    const [updated] = await coll.find().toArray()
-    assert.equal(updated.title, TEST_DATA[0].title) // unchanged
-    assert.equal(updated.content, TEST_DATA[0].content) // unchanged
   })
 
   after(async () => {

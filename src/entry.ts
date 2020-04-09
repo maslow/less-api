@@ -33,7 +33,12 @@ export class Entry {
     this.ruler.register(name, handler)
   }
 
-  parseParams(actionType: ActionType, reqParams: any): Params {
+  parseParams(reqParams: any): Params {
+    const { action } = reqParams
+    return Entry.parse(action, reqParams)
+  }
+
+  static parse(actionType: ActionType, reqParams: any): Params {
     const { collectionName: collection } = reqParams
 
     let params: Params = { action: actionType, collection }

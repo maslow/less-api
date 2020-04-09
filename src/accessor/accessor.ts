@@ -28,5 +28,6 @@ export interface AccessorInterface {
     type: string,
     init(): Promise<void>,
     execute(params: Params): Promise<ReadResult | UpdateResult | AddResult | RemoveResult | CountResult>,
-    get(collection: string, query: any): Promise<any>
+    get(collection: string, query: any): Promise<any>,
+    close(): void
 }

@@ -29,8 +29,7 @@ app.post('/entry', async (req, res) => {
   const { role, userId } = parseToken(req.headers['authorization'])
 
   // parse params
-  const { action } = req.body
-  const params = entry.parseParams(action, req.body)
+  const params = entry.parse(req.body)
 
   const injections = {
     $role: role,

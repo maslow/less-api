@@ -18,10 +18,11 @@ describe('class Entry', () => {
     const reqParams = {
       collectionName: 'test-name',
       query: { _id: 'test-id'},
-      other: 'test'
+      other: 'test',
+      action: 'database.queryDocument'
     }
 
-    let r = entry.parseParams('database.queryDocument', reqParams)
+    let r = entry.parseParams(reqParams)
     
     assert.equal(r.action, 'database.queryDocument')
     assert.equal(r.collection, 'test-name')
@@ -34,7 +35,7 @@ describe('class Entry', () => {
     const entry = new Entry(accessor)
 
     try {
-      entry.parseParams('database.unknowAction', {})
+      entry.parseParams({ action: 'database.unknowAction'})
       throw new Error('should get an error but not')
     } catch (error) {
       assert.ok(error)

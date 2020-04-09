@@ -16,13 +16,17 @@ export class MongoAccessor implements AccessorInterface {
     constructor(db: string, url: string, options?: MongoClientOptions) {
         this.db_name = db
         this.conn = new MongoClient(url, options || {})
-        this.db = null as Db
+        this.db = null
     }
 
     async init() {
         await this.conn.connect()
         this.db = this.conn.db(this.db_name)
         return
+    }
+
+    close(){
+        this.conn.close()
     }
 
     async execute(params: Params): Promise<ReadResult | UpdateResult | AddResult | RemoveResult | CountResult | never> {

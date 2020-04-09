@@ -22,6 +22,7 @@
   "author": "maslow(wangfugen@126.com)",
   "license": "ISC",
   "dependencies": {
+    "@cloudbase/database": "^0.9.10",
     "@types/mongodb": "^3.3.8",
     "mongodb": "^3.3.2",
     "validator": "^12.0.0",

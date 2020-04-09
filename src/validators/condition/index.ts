@@ -1,6 +1,6 @@
 import * as vm from 'vm'
-import { Handler } from '../processor'
-import { AccessorInterface } from '../accessor';
+import { Handler } from '../../processor'
+import { AccessorInterface } from '../../accessor';
 
 interface QueryResultPair {
   query: [string, any],

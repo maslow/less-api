@@ -1,6 +1,6 @@
-import { Handler } from './../processor';
-import { validateField } from './common/validate'
-import { isAllowedFields, flattenData } from './common/utils'
+import { Handler } from '../../processor'
+import { validateField } from './validate'
+import { isAllowedFields, flattenData } from '../utils'
 
 
 export const DataHandler: Handler = async function (config, context){

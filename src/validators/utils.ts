@@ -1,7 +1,9 @@
-import { UPDATE_COMMANDS } from "../../types"
+import { UPDATE_COMMANDS } from "../types"
 
 
 /**
+ * 将带操作符的 data 对象平铺
+ * 
 data: {
     title: '',
     $set: {
@@ -35,6 +37,11 @@ export function flattenData(data: any = {}): object{
     return result
 }
 
+/**
+ * 判断字段列是否都在白名单内
+ * @param fields [string] 输入字段列表
+ * @param allow_fields [string] 允许的字段列表
+ */
 export function isAllowedFields(fields: string[], allow_fields: string[]): string | null{
     for(let fd of fields){
         if(!allow_fields.includes(fd))

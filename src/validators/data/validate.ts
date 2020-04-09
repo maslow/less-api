@@ -2,7 +2,7 @@
 import * as $ from 'validator'
 import * as vm from 'vm'
 import { HandlerContext } from '../../processor'
-import { flattenData } from './utils'
+import { flattenData } from '../utils'
 
 const RULE_KEYS = [
     'required', 'in', 'default',

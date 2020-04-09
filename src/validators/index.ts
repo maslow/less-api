@@ -5,5 +5,6 @@ import { QueryHandler } from './query'
 
 
 export const condition = ConditionHandler
+export const match = ConditionHandler
 export const data = DataHandler
 export const query = QueryHandler

@@ -3,41 +3,54 @@ import * as assert from 'assert'
 import { Entry } from './entry'
 import { Params, PermissionType, getAction } from './types'
 import { Handler, Processor, HandlerContext } from './processor'
-import * as buildinValidators from './validators'
+import * as BUILT_IN_VALIDATORS from './validators'
 import { AccessorInterface } from './accessor'
 
-interface ValidatorCollection {
-  [name: string]: Handler
+// 数据库规则
+interface DbRulesTree {
+  [collection: string]: CollectionRules
 }
 
-interface InternalRuleTable {
+// 集合规则
+type CollectionRules = {
+  [permission in PermissionType]: PermissionRule[];
+}
+
+// 权限规则
+interface PermissionRule {
   [name: string]: Processor
 }
 
-type InternalPermissions = {
-  [permission in PermissionType]: InternalRuleTable[];
-}
-
-interface InternalRules {
-  [collection: string]: InternalPermissions
-}
-
-
+// 验证错误信息
 export interface ValidateError {
   type: string | number,
   error: string | object
 }
 
+// 验证结果
 export interface ValidateResult {
   errors?: ValidateError[],
-  matched?: InternalRuleTable
+  matched?: PermissionRule
+}
+
+// 验证器容器
+interface ValidatorMap {
+  [name: string]: Handler
 }
 
 export class Ruler {
 
   private readonly entry: Entry
-  readonly validators: ValidatorCollection
-  private rules: InternalRules
+
+  /**
+   * 验证器注册表
+   */
+  readonly validators: ValidatorMap
+
+  /**
+   * 解析后的数据库规则树
+   */
+  private rules: DbRulesTree
 
   constructor(entry: Entry) {
     this.entry = entry
@@ -62,58 +75,73 @@ export class Ruler {
   load(rules: any) {
     assert.equal(typeof rules, 'object', "invalid 'rules'")
 
-    const internalRules = {} as InternalRules
+    const tree = {} as DbRulesTree
+
     for (let collection in rules) {
-      const permissions = rules[collection]        // permissions is an object, like { ".read": ..., '.update': ... }
-      internalRules[collection] = {} as InternalPermissions
+      const permissions = rules[collection]        // permissions is an object, like { ".read": {...}, '.update': {...} }
+      tree[collection] = {} as CollectionRules
       Object.keys(permissions).forEach(pn => {
-        internalRules[collection][pn] = this.instantiateValidators(permissions[pn])
+        tree[collection][pn] = this.instantiateValidators(permissions[pn])
       })
     }
-    this.rules = internalRules
+    this.rules = tree
     return true
   }
 
-  private instantiateValidators(permissionRules: any) {
+  /**
+   * 实例化验证器
+   * @param permissionRules 权限规则
+   */
+  private instantiateValidators(permissionRules: any): PermissionRule[]{
     assert.notEqual(permissionRules, undefined, 'permissionRules is undefined')
 
     let rules = permissionRules
+
+    // 权限规则为布尔时，默认使用 condition 验证器
     if ([true, false].includes(rules)) {
       rules = [{ condition: `${rules}` }]
     }
 
-    // use condition validator by default
+    // 权限规则为字符串时，默认使用 condition 验证器
     if (typeof rules === 'string') rules = [{ condition: rules }]
 
+    // 权限规则不为数组时，转为数组
     if (!(rules instanceof Array)) rules = [rules]
 
-    const data: InternalRuleTable[] = rules.map(raw_rule => {
-      const rule: InternalRuleTable = {}
+    const result: PermissionRule[] = rules.map(raw_rule => {
+      const prule: PermissionRule = {}
       for (let name in raw_rule) {
         const handler = this.validators[name]
         if (!handler) {
           throw new Error(`unknown validator '${name}' in your rules`)
         }
         const config = raw_rule[name]
-        rule[name] = new Processor(name, handler, config)
+        prule[name] = new Processor(name, handler, config)
       }
-      return rule
+      return prule
     })
 
-    return data
+    return result
   }
 
+  /**
+   * 验证访问规则
+   * @param params 
+   * @param injections 
+   */
   async validate(params: Params, injections: object): Promise<ValidateResult> {
     const { collection, action: actionType } = params
 
     let errors: ValidateError[] = []
+
+    // 判断所访问的集合是否配置规则
     if (!this.collections.includes(collection)) {
       const err: ValidateError = { type: 0, error: `collection "${collection}" not found` }
       errors.push(err)
       return { errors }
     }
 
-
+    // action 是否合法
     const action = getAction(actionType)
     if (!action) {
       const err: ValidateError = { type: 0, error: `action "${actionType}" invalid` }
@@ -121,24 +149,26 @@ export class Ruler {
       return { errors }
     }
 
-    const permissionName = action.permission
-    const permRuleTables: InternalRuleTable[] = this.rules[collection][permissionName]
+    const permName = action.permission
+    const permRules: PermissionRule[] = this.rules[collection][permName]
 
-
-    if (!permRuleTables) {
+    // 权限规则不存在
+    if (!permRules) {
       const err: ValidateError = { type: 0, error: `${collection} ${actionType} don't has any rules` }
       errors.push(err)
       return { errors }
     }
 
-    // matching permission rules
+    // 遍历验证权限的每一条规则
+    let matched = null
     const context: HandlerContext = { ruler: this, params, injections }
 
-    let matched = null
-    for (let validtrs of permRuleTables) {
+    for (let validtrs of permRules) {
       let error: ValidateError = null
+      // 执行一条规则的所有验证器
       for (let vname in validtrs) {
         let result = await validtrs[vname].run(context)
+        // 任一验证器执行不通过，则跳过本条规则
         if (result) {
           error = { type: vname, error: result }
           break
@@ -147,16 +177,25 @@ export class Ruler {
 
       if (error) errors.push(error)
 
+      // 本条规则验证通过
       if (!error) {
         matched = validtrs
         break
       }
     }
+
+    // 没有匹配到任何规则，返回验证错误信息
     if (!matched) return { errors }
+
     return { matched }
   }
 
 
+  /**
+   * 注册验证器
+   * @param name 
+   * @param handler 
+   */
   register(name: string, handler: Handler) {
     assert.ok(name, `register error: name must not be empty`)
     assert.ok(handler instanceof Function, `${name} register error: 'handler' must be a callable function`)
@@ -167,9 +206,13 @@ export class Ruler {
     this.validators[name] = handler
   }
 
+  /**
+   * 加载内置验证器
+   */
   private loadBuiltins() {
-    for (let name in buildinValidators) {
-      this.register(name, buildinValidators[name] as Handler)
+    for (let name in BUILT_IN_VALIDATORS) {
+      const handler = BUILT_IN_VALIDATORS[name] as Handler
+      this.register(name, handler)
     }
   }
 }

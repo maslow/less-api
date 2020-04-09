@@ -6,6 +6,7 @@ interface QueryResultPair {
   query: [string, any],
   result: any
 }
+
 export const ConditionHandler: Handler = async function (config, context) {
   try {
     const { injections, params, ruler } =  context

@@ -2,7 +2,6 @@
 import * as $ from 'validator'
 import * as vm from 'vm'
 import { HandlerContext } from '../../processor'
-import { flattenData } from '../utils'
 
 const RULE_KEYS = [
     'required', 'in', 'default',
@@ -11,46 +10,44 @@ const RULE_KEYS = [
 ]
 
 
-export async function validateField(field: string, data: any, rules: any, context: HandlerContext) {
-    if(typeof rules === 'string'){
-        rules = { condition: rules }
+export async function validateField(field: string, query: any, configRule: any, context: HandlerContext) {
+    if(typeof configRule === 'string'){
+        configRule = { condition: configRule }
     }
 
-    if(typeof rules !== 'object') {
+    if(typeof configRule !== 'object') {
         return `config error: [${field}]'s rules must be an object`
     }
 
-    const flatten = flattenData(data)
-
     // if required == true
-    const isRequired = rules['required'] == true
-    if(flatten[field] === undefined || flatten[field] === null) {
+    const isRequired = configRule['required'] == true
+    if(query[field] === undefined || query[field] === null) {
         // if default
-        if(rules['default'] !== undefined && rules['default'] !== null) {
-            flatten[field] = data[field] = rules['default']
+        if(configRule['default'] !== undefined && configRule['default'] !== null) {
+            query[field] = query[field] = configRule['default']
         }else{
             return isRequired ? `${field} is required` : null
         }
     }
 
-    const rule_names = Object.keys(rules)
+    const rule_names = Object.keys(configRule)
         .filter(name => ['required', 'default'].includes(name) == false)
 
     for(let name of rule_names) {
-        const options = rules[name]
-        const error = await _validate(name, options, field, flatten, context)
+        const options = configRule[name]
+        const error = await validate(name, options, field, query, context)
         if(error) return error
     }
 
     return null
 }
 
-async function _validate(ruleName: string, ruleOptions: any, field: string, data: any, context: HandlerContext) {
+async function validate(ruleName: string, ruleOptions: any, field: string, query: any, context: HandlerContext) {
     if(!RULE_KEYS.includes(ruleName)){
         return `config error: unknown rule [${ruleName}]`
     }
 
-    const value = data[field]
+    const value = query[field]
 
     if(ruleName === 'condition'){
         const script = new vm.Script(ruleOptions)

@@ -2,7 +2,8 @@
 import * as $ from 'validator'
 import * as vm from 'vm'
 import { HandlerContext } from '../../processor'
-import { flattenData } from '../utils'
+import { UPDATE_COMMANDS } from "../../types"
+
 
 const RULE_KEYS = [
     'required', 'in', 'default',
@@ -143,4 +144,41 @@ async function _validate(ruleName: string, ruleOptions: any, field: string, data
     }
 
     return null
+}
+
+
+/**
+ * 将带操作符的 data 对象平铺
+ * 
+data: {
+    title: '',
+    $set: {
+        content: '',
+        author: 123
+    },
+    $inc: {
+        age: 1
+    },
+    $push: {
+        grades: 99,
+    },
+}
+*/
+export function flattenData(data: any = {}): object{
+    const arr = Object.values(UPDATE_COMMANDS)
+    const operators = new Set<string>(arr)
+    const result = {}
+    
+    for(const key in data) {
+        if(!operators.has(key)){
+            result[key] = data[key]
+            continue
+        }
+
+        const obj = data[key]
+        for(const k in obj){
+            result[k] = obj[k]
+        }
+    }
+    return result
 }

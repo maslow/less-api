@@ -130,7 +130,7 @@ export class UniCloudAccessor implements AccessorInterface {
         const result = await coll.where(query).count()
 
         return {
-            count: result.total
+            total: result.total
         }
     }
 }

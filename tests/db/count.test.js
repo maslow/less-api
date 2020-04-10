@@ -32,7 +32,7 @@ describe('Database count', function () {
     }
     const result = await entry.execute(params)
     assert.ok(result)
-    assert.equal(result.count, TEST_DATA.length)
+    assert.equal(result.total, TEST_DATA.length)
   })
 
   it('count with query should be ok', async () => {
@@ -43,22 +43,22 @@ describe('Database count', function () {
     }
     let result = await entry.execute(params)
     assert.ok(result)
-    assert.equal(result.count, 2)
+    assert.equal(result.total, 2)
 
     params.query.type = 'b'
     result = await entry.execute(params)
     assert.ok(result)
-    assert.equal(result.count, 1)
+    assert.equal(result.total, 1)
 
     params.query = { $or: [{type: 'a'}, {type: 'b'}]}
     result = await entry.execute(params)
     assert.ok(result)
-    assert.equal(result.count, 3)
+    assert.equal(result.total, 3)
 
     params.query.type = 'invalid_type'
     result = await entry.execute(params)
     assert.ok(result)
-    assert.equal(result.count, 0)
+    assert.equal(result.total, 0)
   })
 
   after(async () => {

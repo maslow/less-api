@@ -20,7 +20,7 @@ export interface RemoveResult {
 }
 
 export interface CountResult {
-    count: number
+    total: number
 }
 
 

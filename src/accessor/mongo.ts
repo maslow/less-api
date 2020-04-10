@@ -162,7 +162,7 @@ export class MongoAccessor implements AccessorInterface {
         const options = {}
         const result = await coll.countDocuments(query, options)
         return {
-            count: result
+            total: result
         }
     }
 

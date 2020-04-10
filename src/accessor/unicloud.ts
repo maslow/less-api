@@ -102,7 +102,7 @@ export class UniCloudAccessor implements AccessorInterface {
         const result = await coll.add(data)
         
         return {
-            _id: result.result,
+            _id: result.result || result.id,
             insertedCount: result.inserted
         }
     }
@@ -127,7 +127,7 @@ export class UniCloudAccessor implements AccessorInterface {
         const coll = this.db.collection(collection)
 
         const query = params.query || {}
-        const result = await coll.where(query).count()
+        const result = await coll.where({}).count()
 
         return {
             count: result.total

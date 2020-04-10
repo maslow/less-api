@@ -1,6 +1,6 @@
 {
   "name": "less-api",
-  "version": "0.1.9",
+  "version": "1.0",
   "description": "通过一套「访问控制规则」配置数据库访问，用一个 API 替代服务端 90% 的数据访问 APIs。",
   "main": "./dist",
   "scripts": {
@@ -25,8 +25,7 @@
     "@cloudbase/database": "^0.9.10",
     "@types/mongodb": "^3.3.8",
     "mongodb": "^3.3.2",
-    "validator": "^12.0.0",
-    "wx-server-sdk": "^1.5.3"
+    "validator": "^12.0.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.5",

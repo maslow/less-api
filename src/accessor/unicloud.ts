@@ -78,20 +78,22 @@ export class UniCloudAccessor implements AccessorInterface {
     protected async update(collection: string, params: Params): Promise<UpdateResult> {
         const coll = this.db.collection(collection)
 
-        let { query, merge, data} = params
+        let { query, merge, data, multi } = params
 
         // dispatch calling function
         let result : any
-        if (merge) {
+        if (!merge) {
             result = await coll.doc(query._id).set(data)
-        } else {
+        } else if (merge && multi){
             result = await coll.where(query).update(data)
+        } else {
+            result = await coll.doc(query._id).update(data)
         }
 
         return {
             upsert_id: result.upsertedId,
-            updated: result.modifiedCount,
-            matched: result.matchedCount
+            updated: result.updated,
+            matched: result.affectedDocs
         }
     }
 
@@ -127,7 +129,7 @@ export class UniCloudAccessor implements AccessorInterface {
         const coll = this.db.collection(collection)
 
         const query = params.query || {}
-        const result = await coll.where({}).count()
+        const result = await coll.where(query).count()
 
         return {
             total: result.total

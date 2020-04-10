@@ -18,6 +18,9 @@ export class UniCloudAccessor implements AccessorInterface {
         
     }
 
+    close() {
+    }
+
     async execute(params: Params): Promise<ReadResult | UpdateResult | AddResult | RemoveResult | CountResult | never> {
         const { collection, action } = params
 

@@ -1,4 +1,4 @@
-![](https://github.com/Maslow/less-api/workflows/release/badge.svg)
+![](https://github.com/Maslow/less-api/workflows/release/badge.svg?branch=v1.0.0)
 
 ## 介绍
 

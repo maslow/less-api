@@ -1,4 +1,4 @@
-![](https://github.com/Maslow/less-api/workflows/release/badge.svg)
+![](https://github.com/Maslow/less-api/workflows/release/badge.svg?branch=v1.0.0)
 
 ## 介绍
 
@@ -57,7 +57,7 @@
     即便是应用重构，也可逐个替换原 `less-api` 负责的请求，重构过程不影响应用正常运行，持续发布的方式重构。
 
 
-### 3.复杂架构的项目
+### 4. 复杂架构的项目
 
     在复杂架构的项目中， `less-api` 可以充当其中一个或多个微服务，承载部分数据操作请求。
     

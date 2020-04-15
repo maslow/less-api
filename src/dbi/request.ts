@@ -18,9 +18,12 @@ export class Request {
 
     const ret = await accessor.execute(params)
 
+    // 解决 mongodb _id 对象字符串问题
+    const _data = JSON.parse(JSON.stringify(ret))
+
     return {
       code: 0,
-      data: ret
+      data: _data
     }
   }
 }

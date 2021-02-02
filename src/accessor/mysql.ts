@@ -1,8 +1,11 @@
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
 import { Params, ActionType, Order, Direction, QUERY_COMMANDS, LOGIC_COMMANDS } from '../types'
 import { createConnection, Connection, ConnectionOptions } from 'mysql2/promise'
-import { assert } from "console"
+import * as assert from 'assert'
 
+/**
+ * Mysql Accessor
+ */
 export class MysqlAccessor implements AccessorInterface {
 
     readonly type: string = 'mysql'
@@ -80,6 +83,9 @@ export class MysqlAccessor implements AccessorInterface {
     }
 }
 
+/**
+ *  SqlBuilder: Mongo 操作语法生成 SQL 语句
+ */
 class SqlBuilder {
     readonly params: Params
 
@@ -201,6 +207,9 @@ class SqlBuilder {
 }
 
 
+/**
+ * Mongo 查询转换为 SQL 查询
+ */
 class SqlQueryBuilder {
 
     readonly query: any
@@ -236,23 +245,22 @@ class SqlQueryBuilder {
 
             // 若是逻辑操作符
             if (this.isLogicOperator(key)) {
-                const _v = this.processLogicOperator(key, value)
-                strs.push(_v)
+                const ret = this.processLogicOperator(key, value)
+                strs.push(ret)
                 continue
             }
 
             // 若是值属性（number, string, boolean)
             if (this.isBasicValue(value)) {
-                const _v = this.processBasicValue(value)
-                strs.push(`${key} = ${_v}`)
-                // this._values.push(_v) // todo
+                const ret = this.processBasicValue(key, value, QUERY_COMMANDS.EQ)
+                strs.push(ret)
                 continue
             }
 
             // 若是查询操作符(QUERY_COMMANDS)
             if (typeof value === 'object') {
-                const _v = this.processQueryOperator(key, value)
-                strs.push(_v)
+                const ret = this.processQueryOperator(key, value)
+                strs.push(ret)
                 continue
             }
 
@@ -269,29 +277,51 @@ class SqlQueryBuilder {
     }
 
     // 处理逻辑操作符的查询
-    protected processLogicOperator(key, value) {
+    protected processLogicOperator(operator: string, value: any[]) {
         return ''
     }
 
     // 处理值属性
-    protected processBasicValue(value) {
-        assert(this.isBasicValue(value))
+    protected processBasicValue(field: string, value: string | number | boolean | [], operator: string) {
+        const op = this.mapQueryOperator(operator)
 
-        const type = typeof value
-        switch (type) {
-            case 'number':
-            case 'boolean':
-                return value
-            case 'string':
-                return `"${value}"`
+        let _v = null
+
+        // $in $nin 值是数组, 需单独处理
+        const { IN, NIN } = QUERY_COMMANDS
+        if ([IN, NIN].includes(operator)) {
+            const arr = (value as any[]).map(v => {
+                return this.wrapBasicValue(v)
+            })
+            const vals = arr.join(',')
+            _v = `(${vals})`
+        } else {
+            assert(this.isBasicValue(value))
+            _v = this.wrapBasicValue(value as any)
         }
 
-        throw new Error('unknow basic value found: ' + value)
+        return `${field} ${op} ${_v}`
     }
 
     // 处理查询逻辑符
-    protected processQueryOperator(key, value) {
-        return ''
+    protected processQueryOperator(field: string, value: any) {
+        let strs = []
+        // key 就是逻辑操作符
+        for (let key in value) {
+            // @todo 暂且跳过[非]查询逻辑符，这种情况应该报错，建议使用类实现属性管理错误
+            if (!this.isQueryOperator(key)) {
+                continue
+            }
+
+            const sub_value = value[key]
+            const result = this.processBasicValue(field, sub_value, key)
+            strs.push(result)
+        }
+        strs = strs.filter(s => s != '' && s != undefined)
+        if (strs.length === 0) {
+            return ''
+        }
+        return strs.join(' and ')
     }
 
     // 是否为值属性(number, string, boolean)
@@ -360,5 +390,49 @@ class SqlQueryBuilder {
             }
         }
         return false
+    }
+
+    // 转换 mongo 查询操作符到 sql
+    protected mapQueryOperator(operator: string) {
+        assert(this.isQueryOperator(operator))
+        let op = ''
+        switch (operator) {
+            case QUERY_COMMANDS.EQ:
+                op = '='
+                break
+            case QUERY_COMMANDS.NEQ:
+                op = '<>'
+                break
+            case QUERY_COMMANDS.GT:
+                op = '>'
+                break
+            case QUERY_COMMANDS.GTE:
+                op = '>='
+                break
+            case QUERY_COMMANDS.LT:
+                op = '<'
+                break
+            case QUERY_COMMANDS.LTE:
+                op = '<='
+                break
+            case QUERY_COMMANDS.IN:
+                op = ' in ' // TIP: keep space in both sides
+                break
+            case QUERY_COMMANDS.NIN:
+                op = ' not in '  // TIP: keep space in both sides
+        }
+
+        assert(op != '')
+
+        return op
+    }
+
+    // 处理基本类型的值（SQL化）
+    protected wrapBasicValue(value: string | number | boolean) {
+        let _v = value
+        if (typeof value === 'string') {
+            _v = `"${value}"`
+        }
+        return _v
     }
 }

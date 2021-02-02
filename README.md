@@ -260,13 +260,12 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 
 ```sh
     npm i
-    npm i mocha -g
 ```
 
 ### 单元测试
 
 ```sh
-    mocha tests/units/*.test.js
+    npx mocha tests/units/*.test.js
 ```
 
 ### 数据库访问测试
@@ -281,7 +280,7 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 执行测试用例
 
 ```sh
-    mocha tests/db/*.test.js
+    npx mocha tests/db/*.test.js
 ```
 
 停止&删除 Mongo 实例
@@ -290,13 +289,9 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
     docker rm -f mongotest
 ```
 
-## doing & todo
+##  todo
 
-- 实现「数据访问控制规则」  【Done】
-- 提供 JS 版客户端 SDK: less-api-client-js 【Done】
-- 支持 Uni-app 客户端 【Done】
-- 支持 UniCloud 云开发环境 【Done】
 - 实现服务端应用内数据操作事件，可订阅相应事件，触发更多自定义的业务逻辑
 - 基于 Mongo 的`change watch`, 实现客户端可订阅数据变更通知，服务端通过 websocket 向客户端实时推送数据变更
-- 提供 Android & iOS 客户端 SDK
+- 提供 Flutter (Dart) SDK
 - 支持 MySQL 等关系型数据库

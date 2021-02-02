@@ -35,6 +35,7 @@ export const QueryHandler: Handler = async function (config, context){
 
 
     // 禁止使用逻辑操作符
+    // TODO? 经 `/docs/qa-1.md` 讨论， 操作符查询也是可以被允许的，那么此处就不需要了，后面相应的 isAllowedFields 逻辑也应该去掉。
     if(hasOperator(fields)) {
         return 'operators in query is forbidden'
     }

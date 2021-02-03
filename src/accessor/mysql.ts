@@ -1,11 +1,12 @@
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
-import { Params, ActionType, Order, Direction, QUERY_COMMANDS, LOGIC_COMMANDS } from '../types'
+import { Params, ActionType, QUERY_COMMANDS, LOGIC_COMMANDS } from '../types'
 import { createConnection, Connection, ConnectionOptions } from 'mysql2/promise'
 import * as assert from 'assert'
 
 /**
  * Mysql Accessor
  */
+
 export class MysqlAccessor implements AccessorInterface {
 
     readonly type: string = 'mysql'
@@ -58,27 +59,27 @@ export class MysqlAccessor implements AccessorInterface {
         throw new Error(`invalid 'action': ${action}`)
     }
 
-    async get(collection: string, query: any): Promise<any> {
+    async get(_collection: string, _query: any): Promise<any> {
         // todo
     }
 
-    protected async read(collection: string, params: Params): Promise<ReadResult> {
+    protected async read(_collection: string, _params: Params): Promise<ReadResult> {
         return
     }
 
-    protected async update(collection: string, params: Params): Promise<UpdateResult> {
+    protected async update(_collection: string, _params: Params): Promise<UpdateResult> {
         return
     }
 
-    protected async add(collection: string, params: Params): Promise<AddResult> {
+    protected async add(_collection: string, _params: Params): Promise<AddResult> {
         return
     }
 
-    protected async remove(collection: string, params: Params): Promise<RemoveResult> {
+    protected async remove(_collection: string, _params: Params): Promise<RemoveResult> {
         return
     }
 
-    protected async count(collection: string, params: Params): Promise<CountResult> {
+    protected async count(_collection: string, _params: Params): Promise<CountResult> {
         return
     }
 }
@@ -86,7 +87,7 @@ export class MysqlAccessor implements AccessorInterface {
 /**
  *  SqlBuilder: Mongo 操作语法生成 SQL 语句
  */
-class SqlBuilder {
+export class SqlBuilder {
     readonly params: Params
 
     constructor(params: Params) {
@@ -210,10 +211,10 @@ class SqlBuilder {
 /**
  * Mongo 查询转换为 SQL 查询
  */
-class SqlQueryBuilder {
+export class SqlQueryBuilder {
 
     readonly query: any
-    private _values: any[]
+    // private _values: any[]
 
     constructor(query: any) {
         this.query = query
@@ -236,39 +237,18 @@ class SqlQueryBuilder {
         return { ok: true }
     }
 
+    // 
     build(): string {
         assert(false === this.hasNestedFieldInQuery())
 
         let strs = ['where 1=1']
-        for (let key in this.query) {
-            const value = this.query[key]
-
-            // 若是逻辑操作符
-            if (this.isLogicOperator(key)) {
-                const ret = this.processLogicOperator(key, value)
-                strs.push(ret)
-                continue
-            }
-
-            // 若是值属性（number, string, boolean)
-            if (this.isBasicValue(value)) {
-                const ret = this.processBasicValue(key, value, QUERY_COMMANDS.EQ)
-                strs.push(ret)
-                continue
-            }
-
-            // 若是查询操作符(QUERY_COMMANDS)
-            if (typeof value === 'object') {
-                const ret = this.processQueryOperator(key, value)
-                strs.push(ret)
-                continue
-            }
-
-            throw new Error(`unknow query property found: {${key}: ${value}}`)
+        // 遍历查询属性
+        for (const key in this.query) {
+            const v = this.buildOne(key, this.query[key])
+            strs.push(v)
         }
 
         strs = strs.filter(s => s != '' && s != undefined)
-
         if (strs.length === 1) {
             return strs[0]
         }
@@ -276,9 +256,78 @@ class SqlQueryBuilder {
         return strs.join(' and ')
     }
 
-    // 处理逻辑操作符的查询
+    // 处理一条查询属性（逻辑操作符属性、值属性、查询操作符属性）
+    protected buildOne(key: string, value: any) {
+        // 若是逻辑操作符
+        if (this.isLogicOperator(key)) {
+            const ret = this.processLogicOperator(key, value)
+            return ret
+        }
+
+        // 若是值属性（number, string, boolean)
+        if (this.isBasicValue(value)) {
+            const ret = this.processBasicValue(key, value, QUERY_COMMANDS.EQ)
+            return ret
+        }
+
+        // 若是查询操作符(QUERY_COMMANDS)
+        if (typeof value === 'object') {
+            const ret = this.processQueryOperator(key, value)
+            return ret
+        }
+
+        throw new Error(`unknow query property found: {${key}: ${value}}`)
+    }
+
+    // 递归处理逻辑操作符的查询($and $or)
+    /**
+    ```js
+        query = {
+        f1: 0,
+        '$or': [
+            { f2: 1},
+            { f6: { '$lt': 4000 } },
+            {
+            '$and': [ { f6: { '$gt': 6000 } }, { f6: { '$lt': 8000 } } ]
+            }
+        ]
+        }
+        // where 1=1 and f1 = 0 and ( f6 < 4000 or (f6 > 6000 and f6 < 8000))
+    ```
+    */
     protected processLogicOperator(operator: string, value: any[]) {
-        return ''
+        const that = this
+
+        function _process(key: string, _value: any[] | any): string {
+            // 如果是逻辑符，则 value 为数组遍历子元素
+            if (that.isLogicOperator(key)) {
+                assert(_value instanceof Array)
+
+                let result = []
+                for (const item of _value) { // 逻辑符子项遍历
+                    for (const k in item) { // 操作
+                        const r = _process(k, item[k])
+                        result.push(r)
+                    }
+                }
+                // 将逻辑符中每个子项的结果用 逻辑符 连接起来
+                const op = that.mapLogicOperator(key)
+                const _v = result.join(` ${op} `)   // keep spaces in both ends
+                return `(${_v})`  // 
+            }
+
+            // 若是值属性（number, string, boolean)
+            if (that.isBasicValue(_value)) {
+                return that.processBasicValue(key, _value, QUERY_COMMANDS.EQ)
+            }
+
+            // 若是查询操作符(QUERY_COMMANDS)
+            if (typeof _value === 'object') {
+                return that.processQueryOperator(key, _value)
+            }
+        }
+
+        return _process(operator, value)
     }
 
     // 处理值属性
@@ -290,9 +339,7 @@ class SqlQueryBuilder {
         // $in $nin 值是数组, 需单独处理
         const { IN, NIN } = QUERY_COMMANDS
         if ([IN, NIN].includes(operator)) {
-            const arr = (value as any[]).map(v => {
-                return this.wrapBasicValue(v)
-            })
+            const arr = (value as any[]).map(v => this.wrapBasicValue(v))
             const vals = arr.join(',')
             _v = `(${vals})`
         } else {
@@ -303,12 +350,12 @@ class SqlQueryBuilder {
         return `${field} ${op} ${_v}`
     }
 
-    // 处理查询逻辑符
+    // 处理查询操作符属性
     protected processQueryOperator(field: string, value: any) {
         let strs = []
-        // key 就是逻辑操作符
+        // key 就是查询操作符
         for (let key in value) {
-            // @todo 暂且跳过[非]查询逻辑符，这种情况应该报错，建议使用类实现属性管理错误
+            // @todo 暂且跳过[非]查询操作符，这种情况应该报错，建议使用类实现属性管理错误
             if (!this.isQueryOperator(key)) {
                 continue
             }
@@ -361,15 +408,19 @@ class SqlQueryBuilder {
     }
 
     // 判断 Query 中是否有属性嵌套
-    protected hasNestedFieldInQuery() {
+    public hasNestedFieldInQuery() {
+        // { id: 0, name: "abc"}
         for (let key in this.query) {
-            // 忽略操作符
+            // 忽略对象顶层属性操作符
             if (this.isOperator(key)) {
                 continue
             }
-
             // 子属性是否有对象
             const obj = this.query[key]
+            if (typeof obj !== 'object') {
+                continue
+            }
+
             if (this.hasObjectIn(obj)) {
                 return true
             }
@@ -377,15 +428,11 @@ class SqlQueryBuilder {
         return false
     }
 
-    // 判断给定对象（Object）中是否存在某个属性为对象类型
+    // 判断给定对象（Object）中是否存在某个属性为非操作符对象
     protected hasObjectIn(object: any) {
         for (let key in object) {
-            // 忽略操作符
-            if (this.isOperator(key)) {
-                continue
-            }
-            // 数组也是 object
-            if (typeof object[key] === 'object') {
+            // 检测到非操作符对象，即判定存在
+            if (!this.isOperator(key)) {
                 return true
             }
         }
@@ -416,14 +463,31 @@ class SqlQueryBuilder {
                 op = '<='
                 break
             case QUERY_COMMANDS.IN:
-                op = ' in ' // TIP: keep space in both sides
+                op = 'in'
                 break
             case QUERY_COMMANDS.NIN:
-                op = ' not in '  // TIP: keep space in both sides
+                op = 'not in'
         }
 
         assert(op != '')
+        return op
+    }
 
+    // 转换 mongo 逻辑操作符到 sql
+    protected mapLogicOperator(operator: string) {
+        assert(this.isLogicOperator(operator))
+
+        let op = ''
+        switch (operator) {
+            case LOGIC_COMMANDS.AND:
+                op = 'and'
+                break
+            case LOGIC_COMMANDS.OR:
+                op = 'or'
+                break
+        }
+
+        assert(op != '')
         return op
     }
 

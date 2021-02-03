@@ -46,7 +46,7 @@ query = {
   }
 }
 
-// where 1=1 and f1 = 0 and f2 != 0 and f3 in (1, 2, 3)
+// where 1=1 and f1 = 0 and f2 <> 0 and f3 in (1, 2, 3)
 ```
 
 ### case 6
@@ -91,6 +91,7 @@ query = {
 query = {
   f1: 0,
   '$or': [
+    { f2: 1},
     { f6: { '$lt': 4000 } },
     {
       '$and': [ { f6: { '$gt': 6000 } }, { f6: { '$lt': 8000 } } ]
@@ -98,7 +99,7 @@ query = {
   ]
 }
 
-// where 1=1 and f1 = 0 and ( f6 < 4000 or (f6 > 6000 and f6 < 8000))
+// where 1=1 and f1 = 0 and (f2 = 1 or f6 < 4000 or (f6 > 6000 and f6 < 8000))
 ```
 
 ## Mongo 更新语法转 SQL 的分析

@@ -1,6 +1,7 @@
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
 import { Params, ActionType } from '../types'
 import { createConnection, Connection, ConnectionOptions } from 'mysql2/promise'
+import { SqlBuilder } from "./sql_builder"
 
 /**
  * Mysql Accessor
@@ -58,11 +59,24 @@ export class MysqlAccessor implements AccessorInterface {
         throw new Error(`invalid 'action': ${action}`)
     }
 
-    async get(_collection: string, _query: any): Promise<any> {
-        // todo
+    async get(collection: string, query: any): Promise<any> {
+        const params: Params = {
+            collection: collection,
+            action: ActionType.READ,
+            query: query,
+            limit: 1
+        }
+        const { sql, values } = SqlBuilder.from(params).select()
+        const ret = await this.conn.execute(sql, values)
+        // todo with ret
+        return ret
     }
 
-    protected async read(_collection: string, _params: Params): Promise<ReadResult> {
+    protected async read(_collection: string, params: Params): Promise<ReadResult> {
+        const { sql, values } = SqlBuilder.from(params).select()
+        const ret = await this.conn.execute(sql, values)
+
+        console.log({ ret })
         return
     }
 

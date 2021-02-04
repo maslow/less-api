@@ -1,5 +1,5 @@
 const express = require('express')
-const { Entry, MongoAccessor } = require('../dist')
+const { Entry, MongoAccessor, MysqlAccessor } = require('../dist')
 const rules = require('./rules.json')
 
 const app = new express()

@@ -1,5 +1,5 @@
 import assert = require("assert")
-import { LOGIC_COMMANDS, Params, QUERY_COMMANDS } from "../types"
+import { Direction, LOGIC_COMMANDS, Order, Params, QUERY_COMMANDS } from "../types"
 
 
 /**
@@ -7,12 +7,14 @@ import { LOGIC_COMMANDS, Params, QUERY_COMMANDS } from "../types"
  */
 export class SqlBuilder {
     readonly params: Params
+    private _values: any[] = []
 
     constructor(params: Params) {
+        this._values = []
         this.params = params
     }
 
-    static fromParams(params: Params): SqlBuilder {
+    static from(params: Params): SqlBuilder {
         return new SqlBuilder(params)
     }
 
@@ -24,6 +26,18 @@ export class SqlBuilder {
         return this.params.query || {}
     }
 
+    get projection(): any {
+        return this.params.projection || {}
+    }
+
+    get orders(): Order[] {
+        return this.params.order || []
+    }
+
+    get data(): any {
+        return this.params.data || {}
+    }
+
     select() {
         const fields = this.buildProjection()
         const query = this.buildQuery()
@@ -31,7 +45,7 @@ export class SqlBuilder {
         const limit = this.buildLimit()
 
         const sql = `select ${fields} from ${this.table} ${query} ${limit} ${orderBy}`
-        const values = this.buildValues()
+        const values = this.values()
         return {
             sql,
             values
@@ -39,24 +53,30 @@ export class SqlBuilder {
     }
 
     update() {
-        const query = this.buildQuery()
         const data = this.buildUpdateData()
-        const limit = this.buildLimit()
+        const query = this.buildQuery()
+
+        // 当 multi 为 true 时允许多条更新，反之则只允许更新一条数据
+        // multi 默认为 false
+        const multi = this.params.multi
+        const limit = multi ? this.buildLimit() : this.buildLimit(1)
         const orderBy = this.buildOrder()
+
         const sql = `update ${this.table} ${data} ${query} ${limit} ${orderBy}`
-        const values = this.buildValues()
-        return {
-            sql,
-            values
-        }
+        const values = this.values()
+
+        return { sql, values }
     }
 
     delete() {
         const query = this.buildQuery()
-        const limit = this.buildLimit()
+
+        // 当 multi 为 true 时允许多条更新，反之则只允许更新一条数据
+        const multi = this.params.multi
+        const limit = multi ? this.buildLimit() : this.buildLimit(1)
         const orderBy = this.buildOrder()
         const sql = `delete from ${this.table} ${query} ${limit} ${orderBy}`
-        const values = this.buildValues()
+        const values = this.values()
         return {
             sql,
             values
@@ -66,54 +86,107 @@ export class SqlBuilder {
     insert() {
         const data = this.buildInsertData()
         const sql = `insert into ${this.table} ${data}`
-        return { sql }
+        const values = this.values()
+        return { sql, values }
     }
 
     count() {
         const query = this.buildQuery()
 
         const sql = `select count(*) from ${this.table} ${query}`
-        const values = this.buildValues()
+        const values = this.values()
         return {
             sql,
             values
         }
     }
 
+    protected addValues(values: any[]) {
+        this._values.push(...values)
+    }
+
     // build query string
     protected buildQuery(): string {
-        return SqlQueryBuilder.from(this.query).build()
+        const builder = SqlQueryBuilder.from(this.query)
+        const sql = builder.build()
+        const values = builder.values()
+        this.addValues(values)
+
+        return sql
     }
 
     // build update data string: set x=a, y=b ...
     protected buildUpdateData(): string {
-        return ''
+        let strs = []
+        for (const key in this.data) {
+            const _val = this.data[key]
+            assert(this.isBasicValue(_val), `invalid data: value of data only support BASIC VALUE(number|boolean|string|undefined), {${key}:${_val}} given`)
+            this.addValues([_val])
+            strs.push(`${key}=?`)
+        }
+        return 'set ' + strs.join(',')
     }
 
     // build insert data string: (field1, field2) values (a, b, c) ...
     protected buildInsertData(): string {
-        return ''
+        const fields = Object.keys(this.data)
+        const values = fields.map(key => {
+            const _val = this.data[key]
+            assert(this.isBasicValue(_val), `invalid data: value of data only support BASIC VALUE(number|boolean|string|undefined), {${key}:${_val}} given`)
+            this.addValues([_val])
+            return '?'
+        })
+
+        const s_fields = fields.join(',')
+        const s_values = values.join(',')
+
+        return `(${s_fields}) values (${s_values})`
     }
 
-    // TODO
     protected buildOrder(): string {
-        return ''
+        if (this.orders.length === 0) {
+            return ''
+        }
+        const strs = this.orders.map(ord => {
+            assert([Direction.ASC, Direction.DESC].includes(ord.direction), `invalid query: order value of {${ord.field}:${ord.direction}} MUST be 'desc' or 'asc'`)
+            return `${ord.field} ${ord.direction}`
+        })
+        return 'order by ' + strs.join(',')
     }
 
-    protected buildLimit(): string {
+    protected buildLimit(_limit?: number): string {
         const offset = this.params.offset || 0
-        const limit = this.params.limit || 100
-        return `limit ${offset},${limit}`
+        const limit = this.params.limit || _limit || 100
+        this.addValues([offset, limit])
+        return `limit ?,?`
     }
 
-    // TODO
+    /**
+     * 指定返回的字段
+     * @tip 在 mongo 中可以指定只显示哪些字段 或者 不显示哪些字段，而在 SQL 中我们只支持[只显示哪些字段]
+     * 示例数据:    `projection: { age: 1, f1: 1}`
+     */
     protected buildProjection(): string {
-        return '*'
+        let fields = []
+        for (const key in this.projection) {
+            const value = this.projection[key]
+            assert(value, `invalid query: value of projection MUST be {true} or {1}, {false} or {0} is not supported in sql`)
+            fields.push(key)
+        }
+        if (fields.length === 0) {
+            return '*'
+        }
+        return fields.join(',')
     }
 
-    // TODO
-    protected buildValues(): any[] {
-        return []
+    protected values(): any[] {
+        return this._values || []
+    }
+
+    // 是否为值属性(number, string, boolean)
+    protected isBasicValue(value) {
+        const type = typeof value
+        return ['number', 'string', 'boolean', 'undefined'].includes(type)
     }
 }
 
@@ -401,28 +474,10 @@ export class SqlQueryBuilder {
     // 处理基本类型的值（SQL化）
     protected wrapBasicValue(value: string | number | boolean) {
         let _v = value
-        if (typeof value === 'string') {
-            _v = `"${value}"`
-        }
+        // 暂且注释掉，可能用不到了
+        // if (typeof value === 'string') {
+        //     _v = `"${value}"`
+        // }
         return _v
     }
 }
-
-
-// class SqlBuilderError extends Error {
-//     readonly type = 'sql_builder_error'
-//     code: string
-//     message: string
-//     suggest: string
-
-//     constructor(message: string, code?: string, suggest?: string) {
-//         super(message)
-//         this.message = message
-//         this.code = code
-//         this.suggest = suggest
-//     }
-
-//     static from(message: string): SqlBuilderError {
-//         return new SqlBuilderError(message)
-//     }
-// }

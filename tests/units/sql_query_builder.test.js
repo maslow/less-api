@@ -1,5 +1,6 @@
 const assert = require('assert')
 const { SqlQueryBuilder } = require('../../dist/accessor/sql_builder')
+const { strictCompareArray } = require('../utils')
 
 
 /**
@@ -22,8 +23,7 @@ describe('class SqlQueryBuilder', () => {
     const values = builder.values()
 
     assert.strictEqual(sql, 'where 1=1 and id = ?')
-    assert.strictEqual(values.length, 1)
-    assert.strictEqual(values[0], 0)
+    strictCompareArray(values, [0])
   })
 
   it('Query CASE 3: query = { id: 0, name: "abc"} shoud be ok', () => {
@@ -34,9 +34,7 @@ describe('class SqlQueryBuilder', () => {
     const sql = builder.build()
     const values = builder.values()
     assert.strictEqual(sql, 'where 1=1 and id = ? and name = ?')
-    assert.strictEqual(values.length, 2)
-    assert.strictEqual(values[0], 0)
-    assert.strictEqual(values[1], `"abc"`)
+    strictCompareArray(values, [0, 'abc'])
   })
 
   it('Query CASE 4 nested property should return error', () => {
@@ -74,13 +72,7 @@ describe('class SqlQueryBuilder', () => {
     const sql = builder.build()
     const values = builder.values()
     assert.strictEqual(sql, 'where 1=1 and f1 = ? and f2 <> ? and f3 in (?,?,?,?)')
-    assert.strictEqual(values.length, 6)
-    assert.strictEqual(values[0], 0)
-    assert.strictEqual(values[1], 0)
-    assert.strictEqual(values[2], 1)
-    assert.strictEqual(values[3], 2)
-    assert.strictEqual(values[4], true)
-    assert.strictEqual(values[5], `"abc"`)
+    strictCompareArray(values, [0, 0, 1, 2, true, 'abc'])
   })
 
 
@@ -104,10 +96,7 @@ describe('class SqlQueryBuilder', () => {
     const values = builder.values()
 
     assert.strictEqual(sql, 'where 1=1 and f1 = ? and (f2 > ? and f2 < ?)')
-    assert.strictEqual(values.length, 3)
-    assert.strictEqual(values[0], 0)
-    assert.strictEqual(values[1], 0)
-    assert.strictEqual(values[2], 1)
+    strictCompareArray(values, [0, 0, 1])
   })
 
   it('Query CASE 7 shoud be ok', () => {
@@ -130,10 +119,7 @@ describe('class SqlQueryBuilder', () => {
     const values = builder.values()
 
     assert.strictEqual(sql, 'where 1=1 and f1 = ? and (f2 > ? or f2 < ?)')
-    assert.strictEqual(values.length, 3)
-    assert.strictEqual(values[0], 0)
-    assert.strictEqual(values[1], 0)
-    assert.strictEqual(values[2], 1)
+    strictCompareArray(values, [0, 0, 1])
   })
 
   it('Query CASE 8 shoud be ok', () => {
@@ -155,11 +141,6 @@ describe('class SqlQueryBuilder', () => {
     const values = builder.values()
 
     assert.strictEqual(sql, 'where 1=1 and f1 = ? and (f2 = ? or f6 < ? or (f6 > ? and f6 < ?))')
-    assert.strictEqual(values.length, 5)
-    assert.strictEqual(values[0], 0)
-    assert.strictEqual(values[1], 1)
-    assert.strictEqual(values[2], 4000)
-    assert.strictEqual(values[3], 6000)
-    assert.strictEqual(values[4], 8000)
+    strictCompareArray(values, [0, 1, 4000, 6000, 8000])
   })
 })

@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { SqlQueryBuilder } = require('../../dist')
+const { SqlQueryBuilder } = require('../../dist/accessor/sql_builder')
 
 
 /**
@@ -39,7 +39,7 @@ describe('class SqlQueryBuilder', () => {
     assert.strictEqual(values[1], `"abc"`)
   })
 
-  it('Query CASE 4 validate() should return error', () => {
+  it('Query CASE 4 nested property should return error', () => {
     const query = {
       id: 0,
       f1: {
@@ -49,9 +49,12 @@ describe('class SqlQueryBuilder', () => {
     const builder = new SqlQueryBuilder(query)
     assert(builder instanceof SqlQueryBuilder)
 
-    const ret = builder.validate()
-    assert.strictEqual(ret.ok, false)
-    assert.strictEqual(ret.error, 'Invalid Query: nested property found in query')
+    try {
+      const sql = builder.build()
+      assert.strictEqual(sql, null)
+    } catch (error) {
+      assert.strictEqual(error.message, 'invalid query: nested property in query')
+    }
   })
 
   it('Query CASE 5 shoud be ok', () => {

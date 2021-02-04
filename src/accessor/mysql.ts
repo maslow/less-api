@@ -214,7 +214,8 @@ export class SqlBuilder {
 export class SqlQueryBuilder {
 
     readonly query: any
-    // private _values: any[]
+    // SQL 参数化使用，收集SQL参数值
+    private _values: any[] = []
 
     constructor(query: any) {
         this.query = query
@@ -256,6 +257,10 @@ export class SqlQueryBuilder {
         return strs.join(' and ')
     }
 
+    values(): any[] {
+        return this._values
+    }
+
     // 处理一条查询属性（逻辑操作符属性、值属性、查询操作符属性）
     protected buildOne(key: string, value: any) {
         // 若是逻辑操作符
@@ -292,7 +297,7 @@ export class SqlQueryBuilder {
             }
         ]
         }
-        // where 1=1 and f1 = 0 and ( f6 < 4000 or (f6 > 6000 and f6 < 8000))
+        // where 1=1 and f1 = 0 and (f2 = 1 and f6 < 4000 or (f6 > 6000 and f6 < 8000))
     ```
     */
     protected processLogicOperator(operator: string, value: any[]) {
@@ -339,12 +344,17 @@ export class SqlQueryBuilder {
         // $in $nin 值是数组, 需单独处理
         const { IN, NIN } = QUERY_COMMANDS
         if ([IN, NIN].includes(operator)) {
-            const arr = (value as any[]).map(v => this.wrapBasicValue(v))
+            (value as any[]).forEach(v => this.addValue(v))
+
+            // const arr = (value as any[]).map(v => this.wrapBasicValue(v))
+            const arr = (value as any[]).map(_ => '?')
             const vals = arr.join(',')
             _v = `(${vals})`
         } else {
             assert(this.isBasicValue(value))
-            _v = this.wrapBasicValue(value as any)
+            this.addValue(value)
+            // _v = this.wrapBasicValue(value as any)
+            _v = '?'
         }
 
         return `${field} ${op} ${_v}`
@@ -369,6 +379,11 @@ export class SqlQueryBuilder {
             return ''
         }
         return strs.join(' and ')
+    }
+
+    protected addValue(value: any) {
+        const val = this.wrapBasicValue(value)
+        this._values.push(val)
     }
 
     // 是否为值属性(number, string, boolean)

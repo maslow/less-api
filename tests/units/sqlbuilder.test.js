@@ -17,14 +17,26 @@ describe('class SqlQueryBuilder', () => {
     const query = { id: 0 }
     const builder = new SqlQueryBuilder(query)
     assert(builder instanceof SqlQueryBuilder)
-    assert.strictEqual(builder.build(), 'where 1=1 and id = 0')
+
+    const sql = builder.build()
+    const values = builder.values()
+
+    assert.strictEqual(sql, 'where 1=1 and id = ?')
+    assert.strictEqual(values.length, 1)
+    assert.strictEqual(values[0], 0)
   })
 
   it('Query CASE 3: query = { id: 0, name: "abc"} shoud be ok', () => {
     const query = { id: 0, name: "abc" }
     const builder = new SqlQueryBuilder(query)
     assert(builder instanceof SqlQueryBuilder)
-    assert.strictEqual(builder.build(), 'where 1=1 and id = 0 and name = "abc"')
+
+    const sql = builder.build()
+    const values = builder.values()
+    assert.strictEqual(sql, 'where 1=1 and id = ? and name = ?')
+    assert.strictEqual(values.length, 2)
+    assert.strictEqual(values[0], 0)
+    assert.strictEqual(values[1], `"abc"`)
   })
 
   it('Query CASE 4 validate() should return error', () => {
@@ -55,7 +67,17 @@ describe('class SqlQueryBuilder', () => {
 
     const builder = new SqlQueryBuilder(query)
     assert(builder instanceof SqlQueryBuilder)
-    assert.strictEqual(builder.build(), 'where 1=1 and f1 = 0 and f2 <> 0 and f3 in (1,2,true,"abc")')
+
+    const sql = builder.build()
+    const values = builder.values()
+    assert.strictEqual(sql, 'where 1=1 and f1 = ? and f2 <> ? and f3 in (?,?,?,?)')
+    assert.strictEqual(values.length, 6)
+    assert.strictEqual(values[0], 0)
+    assert.strictEqual(values[1], 0)
+    assert.strictEqual(values[2], 1)
+    assert.strictEqual(values[3], 2)
+    assert.strictEqual(values[4], true)
+    assert.strictEqual(values[5], `"abc"`)
   })
 
 
@@ -74,7 +96,15 @@ describe('class SqlQueryBuilder', () => {
 
     const builder = new SqlQueryBuilder(query)
     assert(builder instanceof SqlQueryBuilder)
-    assert.strictEqual(builder.build(), 'where 1=1 and f1 = 0 and (f2 > 0 and f2 < 1)')
+
+    const sql = builder.build()
+    const values = builder.values()
+
+    assert.strictEqual(sql, 'where 1=1 and f1 = ? and (f2 > ? and f2 < ?)')
+    assert.strictEqual(values.length, 3)
+    assert.strictEqual(values[0], 0)
+    assert.strictEqual(values[1], 0)
+    assert.strictEqual(values[2], 1)
   })
 
   it('Query CASE 7 shoud be ok', () => {
@@ -92,7 +122,15 @@ describe('class SqlQueryBuilder', () => {
 
     const builder = new SqlQueryBuilder(query)
     assert(builder instanceof SqlQueryBuilder)
-    assert.strictEqual(builder.build(), 'where 1=1 and f1 = 0 and (f2 > 0 or f2 < 1)')
+
+    const sql = builder.build()
+    const values = builder.values()
+
+    assert.strictEqual(sql, 'where 1=1 and f1 = ? and (f2 > ? or f2 < ?)')
+    assert.strictEqual(values.length, 3)
+    assert.strictEqual(values[0], 0)
+    assert.strictEqual(values[1], 0)
+    assert.strictEqual(values[2], 1)
   })
 
   it('Query CASE 8 shoud be ok', () => {
@@ -109,7 +147,16 @@ describe('class SqlQueryBuilder', () => {
 
     const builder = new SqlQueryBuilder(query)
     assert(builder instanceof SqlQueryBuilder)
-    assert.strictEqual(builder.build(), 'where 1=1 and f1 = 0 and (f2 = 1 or f6 < 4000 or (f6 > 6000 and f6 < 8000))')
-  })
 
+    const sql = builder.build()
+    const values = builder.values()
+
+    assert.strictEqual(sql, 'where 1=1 and f1 = ? and (f2 = ? or f6 < ? or (f6 > ? and f6 < ?))')
+    assert.strictEqual(values.length, 5)
+    assert.strictEqual(values[0], 0)
+    assert.strictEqual(values[1], 1)
+    assert.strictEqual(values[2], 4000)
+    assert.strictEqual(values[3], 6000)
+    assert.strictEqual(values[4], 8000)
+  })
 })

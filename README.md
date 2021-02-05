@@ -94,13 +94,12 @@ const rules = {
 
 // init the less-api Entry & Db Accessor
 
-const options = {
+// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
+const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     poolSize: 10
-}
-// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
-const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', options)
+})
 
 const entry = new Entry(accessor)
 entry.init()

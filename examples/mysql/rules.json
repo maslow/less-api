@@ -1,0 +1,14 @@
+{
+  "categories": {
+    ".read": true,
+    ".update": true,
+    ".add": true,
+    ".remove": true
+  },
+  "articles": {
+    ".read": true,
+    ".update": true,
+    ".add": true,
+    ".remove": true
+  }
+}

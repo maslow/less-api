@@ -1,26 +1,34 @@
 const express = require('express')
-const { Entry, MongoAccessor, MysqlAccessor } = require('../dist')
-const rules = require('./rules.json')
+const { Entry, MongoAccessor } = require('../../dist')
+
+const rules = {
+  categories: {
+    '.read': true,
+    '.update': true,
+    '.add': true,
+    '.remove': true
+  }
+}
 
 const app = new express()
 app.use(express.json())
 
-function parseToken(token){
-  return {
-    role: 'admin',
-    userId: 123
-  }
-}
+// request pre-process, include uid parse and cross-domain set
+app.all('*', function (_req, res, next) {
+  // set cross domain
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Headers', 'Authorization, Content-Type')
+  res.header('Access-Control-Allow-Methods', '*')
+  res.header('Content-Type', 'application/json;charset=utf-8')
+  next()
+})
 
 // init the less-api Entry & Db Accessor
 const dbOptions = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    poolSize: 10
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 }
-// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
 const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', dbOptions)
-
 const entry = new Entry(accessor)
 entry.init()
 entry.loadRules(rules)
@@ -34,7 +42,7 @@ app.post('/entry', async (req, res) => {
   const injections = {
     $role: role,
     $userid: userId
-  } 
+  }
 
   // validate query
   const result = await entry.validate(params, injections)
@@ -53,4 +61,13 @@ app.post('/entry', async (req, res) => {
   })
 })
 
-app.listen(8080, () => console.log('listening on 8080'))
+app.listen(8081, () => console.log('listening on 8081'))
+
+
+/* eslint-disable no-unused-vars */
+function parseToken(_token) {
+  return {
+    role: 'admin',
+    userId: 123
+  }
+}

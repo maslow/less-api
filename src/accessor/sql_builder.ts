@@ -44,7 +44,7 @@ export class SqlBuilder {
         const orderBy = this.buildOrder()
         const limit = this.buildLimit()
 
-        const sql = `select ${fields} from ${this.table} ${query} ${limit} ${orderBy}`
+        const sql = `select ${fields} from ${this.table} ${query} ${orderBy} ${limit}`
         const values = this.values()
         return {
             sql,
@@ -53,16 +53,18 @@ export class SqlBuilder {
     }
 
     update() {
+        this.checkData()
+
         const data = this.buildUpdateData()
         const query = this.buildQuery()
 
         // 当 multi 为 true 时允许多条更新，反之则只允许更新一条数据
         // multi 默认为 false
         const multi = this.params.multi
-        const limit = multi ? this.buildLimit() : this.buildLimit(1)
+        const limit = multi ? '' : `limit 1`
         const orderBy = this.buildOrder()
 
-        const sql = `update ${this.table} ${data} ${query} ${limit} ${orderBy}`
+        const sql = `update ${this.table} ${data} ${query} ${orderBy} ${limit}`
         const values = this.values()
 
         return { sql, values }
@@ -73,9 +75,9 @@ export class SqlBuilder {
 
         // 当 multi 为 true 时允许多条更新，反之则只允许更新一条数据
         const multi = this.params.multi
-        const limit = multi ? this.buildLimit() : this.buildLimit(1)
+        const limit = multi ? '' : `limit 1`
         const orderBy = this.buildOrder()
-        const sql = `delete from ${this.table} ${query} ${limit} ${orderBy}`
+        const sql = `delete from ${this.table} ${query} ${orderBy} ${limit} `
         const values = this.values()
         return {
             sql,
@@ -84,6 +86,7 @@ export class SqlBuilder {
     }
 
     insert() {
+        this.checkData()
         const data = this.buildInsertData()
         const sql = `insert into ${this.table} ${data}`
         const values = this.values()
@@ -93,7 +96,7 @@ export class SqlBuilder {
     count() {
         const query = this.buildQuery()
 
-        const sql = `select count(*) from ${this.table} ${query}`
+        const sql = `select count(*) as total from ${this.table} ${query}`
         const values = this.values()
         return {
             sql,
@@ -157,8 +160,10 @@ export class SqlBuilder {
     protected buildLimit(_limit?: number): string {
         const offset = this.params.offset || 0
         const limit = this.params.limit || _limit || 100
-        this.addValues([offset, limit])
-        return `limit ?,?`
+        assert(typeof offset === 'number', 'invalid query: offset must be number')
+        assert(typeof limit === 'number', 'invalid query: limit must be number')
+
+        return `limit ${offset},${limit}`
     }
 
     /**
@@ -187,6 +192,17 @@ export class SqlBuilder {
     protected isBasicValue(value) {
         const type = typeof value
         return ['number', 'string', 'boolean', 'undefined'].includes(type)
+    }
+
+    // data 不可为空
+    protected checkData() {
+        assert(this.data, `invalid data: data can NOT be ${this.data}`)
+        assert(typeof this.data === 'object', `invalid data: data must be an object`)
+
+        assert(!(this.data instanceof Array), `invalid data: data cannot be Array while using SQL`)
+
+        const keys = Object.keys(this.data)
+        assert(keys.length, `invalid data: data can NOT be empty object`)
     }
 }
 

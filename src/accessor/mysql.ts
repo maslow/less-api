@@ -1,7 +1,8 @@
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
 import { Params, ActionType } from '../types'
-import { createConnection, Connection, ConnectionOptions } from 'mysql2/promise'
+import { createConnection, Connection, ConnectionOptions, ResultSetHeader, OkPacket, RowDataPacket } from 'mysql2/promise'
 import { SqlBuilder } from "./sql_builder"
+import { assert } from "console"
 
 /**
  * Mysql Accessor
@@ -14,13 +15,10 @@ export class MysqlAccessor implements AccessorInterface {
     readonly options: ConnectionOptions
     conn: Connection
 
-    constructor(db: string, user: string, password: string, options?: ConnectionOptions) {
-        this.db_name = db
+    constructor(options?: ConnectionOptions) {
+        this.db_name = options.database
         this.conn = null
         this.options = options
-        this.options.database = db
-        this.options.user = user
-        this.options.password = password
     }
 
     async init() {
@@ -67,32 +65,64 @@ export class MysqlAccessor implements AccessorInterface {
             limit: 1
         }
         const { sql, values } = SqlBuilder.from(params).select()
-        const ret = await this.conn.execute(sql, values)
-        // todo with ret
-        return ret
+        const [rows] = await this.conn.execute(sql, values)
+        return (rows as []).length ? rows[0] : null
     }
 
     protected async read(_collection: string, params: Params): Promise<ReadResult> {
         const { sql, values } = SqlBuilder.from(params).select()
-        const ret = await this.conn.execute(sql, values)
+        const [rows] = await this.conn.execute<RowDataPacket[]>(sql, values)
 
-        console.log({ ret })
-        return
+        return {
+            list: rows
+        }
     }
 
-    protected async update(_collection: string, _params: Params): Promise<UpdateResult> {
-        return
+    protected async update(_collection: string, params: Params): Promise<UpdateResult> {
+        const { sql, values } = SqlBuilder.from(params).update()
+        const [ret] = await this.conn.execute<ResultSetHeader>(sql, values)
+
+        return {
+            updated: ret.affectedRows,
+            matched: ret.affectedRows,
+            upsert_id: undefined
+        }
     }
 
-    protected async add(_collection: string, _params: Params): Promise<AddResult> {
-        return
+    protected async add(_collection: string, params: Params): Promise<AddResult> {
+        let { multi } = params
+
+        if (multi) {
+            console.warn('mysql add(): {multi == true} has been ignored!')
+        }
+
+        const { sql, values } = SqlBuilder.from(params).insert()
+
+        const [ret] = await this.conn.execute<ResultSetHeader>(sql, values)
+
+        return {
+            _id: ret.insertId as any,
+            insertedCount: ret.affectedRows
+        }
     }
 
-    protected async remove(_collection: string, _params: Params): Promise<RemoveResult> {
-        return
+    protected async remove(_collection: string, params: Params): Promise<RemoveResult> {
+        const { sql, values } = SqlBuilder.from(params).delete()
+        const [ret] = await this.conn.execute<OkPacket>(sql, values)
+        return {
+            deleted: ret.affectedRows
+        }
     }
 
-    protected async count(_collection: string, _params: Params): Promise<CountResult> {
-        return
+    protected async count(_collection: string, params: Params): Promise<CountResult> {
+        const { sql, values } = SqlBuilder.from(params).count()
+        const [ret] = await this.conn.execute<RowDataPacket[]>(sql, values)
+
+        if (ret.length === 0) {
+            return { total: 0 }
+        }
+        return {
+            total: ret[0].total
+        }
     }
 }

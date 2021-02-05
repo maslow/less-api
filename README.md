@@ -269,6 +269,7 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 ```
 
 ### 数据库访问测试
+#### Mongo
 
 使用 Docker 启动个测试数据库，等待mongo 启动成功
 
@@ -280,7 +281,7 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 执行测试用例
 
 ```sh
-    npx mocha tests/db/*.test.js
+    npx mocha tests/mongo_db/*.test.js
 ```
 
 停止&删除 Mongo 实例
@@ -289,9 +290,38 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
     docker rm -f mongotest
 ```
 
+#### MySQL
+
+使用 Docker 启动个测试数据库，等待mongo 启动成功
+
+```sh
+    docker pull mysql
+    docker run --name mysqltest -e MYSQL_ROOT_PASSWORD=kissme -e MYSQL_DATABASE=testdb -d -p 3306:3306 mysql
+```
+
+执行测试用例
+
+```sh
+    npx mocha tests/mysql_db/*.test.js
+```
+
+停止&删除 Mongo 实例
+
+```sh
+    docker rm -f mysqltest
+```
+
+### 执行所有测试用例
+
+> 请确保已经运行 mongo 和 mysql 测试的实例；
+
+```sh
+npx mocha tests/**/*.test.js
+```
+
 ##  todo
 
 - 实现服务端应用内数据操作事件，可订阅相应事件，触发更多自定义的业务逻辑
 - 基于 Mongo 的`change watch`, 实现客户端可订阅数据变更通知，服务端通过 websocket 向客户端实时推送数据变更
 - 提供 Flutter (Dart) SDK
-- 支持 MySQL 等关系型数据库
+- 支持 MySQL 等关系型数据库 [完成]

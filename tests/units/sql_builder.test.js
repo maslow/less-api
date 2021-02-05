@@ -30,8 +30,8 @@ describe('class SqlBuilder', () => {
     assert(builder instanceof SqlBuilder)
 
     const { sql, values } = builder.select()
-    assert.strictEqual(sql, 'select * from test_table where 1=1 and id = ? and name = ? limit ?,? ')
-    strictCompareArray(values, [0, 'abc', 0, 100])
+    assert.strictEqual(sql, 'select * from test_table where 1=1 and id = ? and name = ?  limit 0,100')
+    strictCompareArray(values, [0, 'abc'])
   })
 
   it('select() with projection: passed', () => {
@@ -47,8 +47,8 @@ describe('class SqlBuilder', () => {
 
     const { sql, values } = builder.select()
 
-    assert.strictEqual(sql, 'select id,name from test_table where 1=1 and id = ? and name = ? limit ?,? ')
-    strictCompareArray(values, [0, 'abc', 0, 100])
+    assert.strictEqual(sql, 'select id,name from test_table where 1=1 and id = ? and name = ?  limit 0,100')
+    strictCompareArray(values, [0, 'abc'])
   })
 
   it('select() with order: passed', () => {
@@ -67,8 +67,8 @@ describe('class SqlBuilder', () => {
 
     const { sql, values } = builder.select()
 
-    assert.strictEqual(sql, 'select * from test_table where 1=1 and id = ? and name = ? limit ?,? order by id asc,name desc')
-    strictCompareArray(values, [0, 'abc', 0, 100])
+    assert.strictEqual(sql, 'select * from test_table where 1=1 and id = ? and name = ? order by id asc,name desc limit 0,100')
+    strictCompareArray(values, [0, 'abc'])
   })
 
   it('count() with query: passed', () => {
@@ -83,7 +83,7 @@ describe('class SqlBuilder', () => {
 
     const { sql, values } = builder.count()
 
-    assert.strictEqual(sql, 'select count(*) from test_table where 1=1 and id = ? and name = ?')
+    assert.strictEqual(sql, 'select count(*) as total from test_table where 1=1 and id = ? and name = ?')
     strictCompareArray(values, [0, 'abc'])
   })
 
@@ -99,8 +99,8 @@ describe('class SqlBuilder', () => {
 
     const { sql, values } = builder.delete()
 
-    assert.strictEqual(sql, 'delete from test_table where 1=1 and id = ? and name = ? limit ?,? ')
-    strictCompareArray(values, [0, 'abc', 0, 1])
+    assert.strictEqual(sql, 'delete from test_table where 1=1 and id = ? and name = ?  limit 1 ')
+    strictCompareArray(values, [0, 'abc'])
   })
 
   it('delete() with multi = true: passed', () => {
@@ -116,8 +116,8 @@ describe('class SqlBuilder', () => {
 
     const { sql, values } = builder.delete()
 
-    assert.strictEqual(sql, 'delete from test_table where 1=1 and id = ? and name = ? limit ?,? ')
-    strictCompareArray(values, [0, 'abc', 0, 100])
+    assert.strictEqual(sql, 'delete from test_table where 1=1 and id = ? and name = ?   ')
+    strictCompareArray(values, [0, 'abc'])
   })
 
   it('insert() with data: passed', () => {
@@ -148,8 +148,8 @@ describe('class SqlBuilder', () => {
 
     const { sql, values } = builder.update()
 
-    assert.strictEqual(sql, 'update test_table set id=?,name=? where 1=1 limit ?,? ')
-    strictCompareArray(values, [0, 'abc', 0, 1])
+    assert.strictEqual(sql, 'update test_table set id=?,name=? where 1=1  limit 1')
+    strictCompareArray(values, [0, 'abc'])
   })
 
   it('update() with query: passed', () => {
@@ -165,8 +165,8 @@ describe('class SqlBuilder', () => {
 
     const { sql, values } = builder.update()
 
-    assert.strictEqual(sql, 'update test_table set id=?,name=? where 1=1 and id = ? and name = ? limit ?,? ')
-    strictCompareArray(values, [1, 'xyz', 0, 'abc', 0, 1])
+    assert.strictEqual(sql, 'update test_table set id=?,name=? where 1=1 and id = ? and name = ?  limit 1')
+    strictCompareArray(values, [1, 'xyz', 0, 'abc'])
   })
 
   it('update() with  multi = true: passed', () => {
@@ -183,7 +183,7 @@ describe('class SqlBuilder', () => {
 
     const { sql, values } = builder.update()
 
-    assert.strictEqual(sql, 'update test_table set id=?,name=? where 1=1 and id = ? and name = ? limit ?,? ')
-    strictCompareArray(values, [1, 'xyz', 0, 'abc', 0, 100])
+    assert.strictEqual(sql, 'update test_table set id=?,name=? where 1=1 and id = ? and name = ?  ')
+    strictCompareArray(values, [1, 'xyz', 0, 'abc'])
   })
 })

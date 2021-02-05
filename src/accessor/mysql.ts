@@ -2,7 +2,6 @@ import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, C
 import { Params, ActionType } from '../types'
 import { createConnection, Connection, ConnectionOptions, ResultSetHeader, OkPacket, RowDataPacket } from 'mysql2/promise'
 import { SqlBuilder } from "./sql_builder"
-import { assert } from "console"
 
 /**
  * Mysql Accessor

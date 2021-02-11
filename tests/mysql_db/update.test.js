@@ -76,7 +76,7 @@ describe('Database Mysql update', function () {
       collection: table,
       action: ActionType.UPDATE,
       query: { age: { $gt: 2 } },
-      data: { $set: { name: 'updated-parts', age: 0 } },
+      data: { $set: { name: 'updated-parts', age: 11 } },
       multi: true,
       merge: true
     }
@@ -84,6 +84,34 @@ describe('Database Mysql update', function () {
 
     assert.strictEqual(r.updated, 2)
     assert.strictEqual(r.matched, 2)
+  })
+
+  it('update with $inc passed', async () => {
+    const params = {
+      collection: table,
+      action: ActionType.UPDATE,
+      query: { age: 1 },
+      data: { $inc: { age: 2 } },
+      merge: true
+    }
+    const r = await entry.execute(params)
+
+    assert.strictEqual(r.updated, 1)
+    assert.strictEqual(r.matched, 1)
+  })
+
+  it('update with $mul passed', async () => {
+    const params = {
+      collection: table,
+      action: ActionType.UPDATE,
+      query: { age: 3 },
+      data: { $mul: { age: 2 } },
+      merge: true
+    }
+    const r = await entry.execute(params)
+
+    assert.strictEqual(r.updated, 1)
+    assert.strictEqual(r.matched, 1)
   })
 
   after(async () => {

@@ -15,7 +15,7 @@ export async function validateField(field: string, query: any, configRule: any, 
         configRule = { condition: configRule }
     }
 
-    if(typeof configRule !== 'object') {
+    if (typeof configRule !== 'object') {
         return `config error: [${field}]'s rules must be an object`
     }
 

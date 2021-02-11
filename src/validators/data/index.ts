@@ -41,7 +41,7 @@ export const DataHandler: Handler = async function (config, context){
 
     // 数组代表只允许出现的字段
     if(config instanceof Array){
-        allow_fields = Object.keys(config)
+        allow_fields = config
         const error = isAllowedFields(fields, allow_fields)
         return error
     }

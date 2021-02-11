@@ -102,6 +102,19 @@ query = {
 // where 1=1 and f1 = 0 and (f2 = 1 or f6 < 4000 or (f6 > 6000 and f6 < 8000))
 ```
 
+### case 9
+
+```js
+query = {
+  f1: 0,
+  f2: {
+    $like: '%keyword%'
+  }
+}
+
+// where 1=1 and f1 = 0 and f2 like "%keyword%"
+```
+
 ## Mongo 更新语法转 SQL 的分析
 
 ### case 1
@@ -172,6 +185,6 @@ values = [0, "abc"]
 
 ### 使用条件与限制
   1. 不允许嵌套属性查询
-  2. 暂不支持 like
+  2. 暂不支持 like [已支持]
   3. 暂不支持 联表查询
   4. 暂不支持事务

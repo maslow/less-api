@@ -31,7 +31,8 @@ describe('Database Mysql update', function () {
       collection: table,
       action: ActionType.UPDATE,
       query: { id: 111 },
-      data: { name: 'updated-1', age: 1 }
+      data: { $set: { name: 'updated-1', age: 1 } },
+      merge: true
     }
     const r = await entry.execute(params)
 
@@ -44,23 +45,25 @@ describe('Database Mysql update', function () {
       collection: table,
       action: ActionType.UPDATE,
       query: {},
-      data: { name: 'updated-all' },
-      multi: true
+      data: { $set: { name: 'updated-all' } },
+      multi: true,
+      merge: true
     }
     const r = await entry.execute(params)
 
     assert.strictEqual(r.updated, 3)
     assert.strictEqual(r.matched, 3)
   })
-  
+
 
   it('update with multi = false should only update 1 row', async () => {
     const params = {
       collection: table,
       action: ActionType.UPDATE,
       query: {},
-      data: { name: 'updated-all-1' },
-      multi: false // default is false
+      data: { $set: { name: 'updated-all-1' } },
+      multi: false, // default is false
+      merge: true
     }
     const r = await entry.execute(params)
 
@@ -73,8 +76,9 @@ describe('Database Mysql update', function () {
       collection: table,
       action: ActionType.UPDATE,
       query: { age: { $gt: 2 } },
-      data: { name: 'updated-parts', age: 0 },
-      multi: true
+      data: { $set: { name: 'updated-parts', age: 0 } },
+      multi: true,
+      merge: true
     }
     const r = await entry.execute(params)
 

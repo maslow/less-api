@@ -140,7 +140,8 @@ describe('class SqlBuilder', () => {
     const params = {
       collection: 'test_table',
       action: ActionType.UPDATE,
-      data: { id: 0, name: 'abc' },
+      data: { $set: { id: 0, name: 'abc' } },
+      merge: true
     }
 
     const builder = new SqlBuilder(params)
@@ -156,8 +157,9 @@ describe('class SqlBuilder', () => {
     const params = {
       collection: 'test_table',
       action: ActionType.UPDATE,
-      data: { id: 1, name: 'xyz' },
-      query: { id: 0, name: 'abc' }
+      data: { $set: { id: 1, name: 'xyz' } },
+      query: { id: 0, name: 'abc' },
+      merge: true
     }
 
     const builder = new SqlBuilder(params)
@@ -173,9 +175,10 @@ describe('class SqlBuilder', () => {
     const params = {
       collection: 'test_table',
       action: ActionType.UPDATE,
-      data: { id: 1, name: 'xyz' },
+      data: { $set: { id: 1, name: 'xyz' } },
       query: { id: 0, name: 'abc' },
-      multi: true
+      multi: true,
+      merge: true
     }
 
     const builder = new SqlBuilder(params)
@@ -185,5 +188,23 @@ describe('class SqlBuilder', () => {
 
     assert.strictEqual(sql, 'update test_table set id=?,name=? where 1=1 and id = ? and name = ?  ')
     strictCompareArray(values, [1, 'xyz', 0, 'abc'])
+  })
+
+  it('update() with operator $unset $inc $mul', () => {
+    const params = {
+      collection: 'test_table',
+      action: ActionType.UPDATE,
+      data: { $set: { id: 1, name: 'xyz' }, $unset: { status: '' }, $inc: { age: 2 }, $mul: { amount: 4 } },
+      query: { id: 0, name: 'abc' },
+      merge: true
+    }
+
+    const builder = new SqlBuilder(params)
+    assert(builder instanceof SqlBuilder)
+
+    const { sql, values } = builder.update()
+
+    assert.strictEqual(sql, 'update test_table set id=?,name=?,age= age + ?,amount= amount * ?,status= null where 1=1 and id = ? and name = ?  limit 1')
+    strictCompareArray(values, [1, 'xyz', 2, 4, 0, 'abc'])
   })
 })

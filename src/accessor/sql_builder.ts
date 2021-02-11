@@ -1,5 +1,5 @@
 import assert = require("assert")
-import { Direction, LOGIC_COMMANDS, Order, Params, QUERY_COMMANDS } from "../types"
+import { Direction, LOGIC_COMMANDS, Order, Params, QUERY_COMMANDS, UPDATE_COMMANDS } from "../types"
 
 
 /**
@@ -119,14 +119,74 @@ export class SqlBuilder {
     }
 
     // build update data string: set x=a, y=b ...
+    /**
+     * 
+     * ```js
+     * {
+     *   action: 'database.updateDocument',
+     *   collection: 'categories',
+     *   query: { _id: '6024f815acbf480fbb9648ce' },
+     *   data: {
+     *       '$set': { title: 'updated-title' },
+     *       '$inc': { age: 1 },
+     *       '$unset': { content: '' }
+     *   },
+     *   merge: true
+     * }
+     * ```
+     */
     protected buildUpdateData(): string {
         let strs = []
-        for (const key in this.data) {
-            const _val = this.data[key]
-            assert(this.isBasicValue(_val), `invalid data: value of data only support BASIC VALUE(number|boolean|string|undefined), {${key}:${_val}} given`)
-            this.addValues([_val])
-            strs.push(`${key}=?`)
+        // sql 不支持 merge 为 false 的情况（合并更新，即替换）
+        assert(this.params.merge, 'invalid params: {merge} should be true in sql')
+
+        // $set
+        if (this.data[UPDATE_COMMANDS.SET]) {
+            const _data = this.data[UPDATE_COMMANDS.SET]
+            assert(typeof _data === 'object', 'invalid data: value of $set must be object')
+            for (const key in _data) {
+                const _val = _data[key]
+                assert(this.isBasicValue(_val), `invalid data: value of data only support BASIC VALUE(number|boolean|string|undefined), {${key}:${_val}} given`)
+                this.addValues([_val])
+                strs.push(`${key}=?`)
+            }
         }
+
+        // $inc
+        if (this.data[UPDATE_COMMANDS.INC]) {
+            const _data = this.data[UPDATE_COMMANDS.INC]
+            assert(typeof _data === 'object', 'invalid data: value of $inc must be object')
+            for (const key in _data) {
+                const _val = _data[key]
+                assert(typeof _val === 'number', `invalid data: value of $inc property only support number, {${key}:${_val}} given`)
+                this.addValues([_val])
+                strs.push(`${key}= ${key} + ?`)
+            }
+        }
+
+        // $mul
+        if (this.data[UPDATE_COMMANDS.MUL]) {
+            const _data = this.data[UPDATE_COMMANDS.MUL]
+            assert(typeof _data === 'object', 'invalid data: value of $mul must be object')
+            for (const key in _data) {
+                const _val = _data[key]
+                assert(typeof _val === 'number', `invalid data: value of $mul property only support number, {${key}:${_val}} given`)
+                this.addValues([_val])
+                strs.push(`${key}= ${key} * ?`)
+            }
+        }
+
+        // $unset
+        if (this.data[UPDATE_COMMANDS.REMOVE]) {
+            const _data = this.data[UPDATE_COMMANDS.REMOVE]
+            assert(typeof _data === 'object', 'invalid data: value of $unset must be object')
+            for (const key in _data) {
+                strs.push(`${key}= null`)
+            }
+        }
+
+        assert(strs.length, 'invalid data: set statement in sql is empty')
+
         return 'set ' + strs.join(',')
     }
 
@@ -144,6 +204,17 @@ export class SqlBuilder {
         const s_values = values.join(',')
 
         return `(${s_fields}) values (${s_values})`
+    }
+
+    protected _buildData(): { fields: string[], values: any[] } {
+        const fields = Object.keys(this.data)
+        const values = fields.map(key => {
+            const _val = this.data[key]
+            assert(this.isBasicValue(_val), `invalid data: value of data only support BASIC VALUE(number|boolean|string|undefined), {${key}:${_val}} given`)
+            return _val
+        })
+
+        return { fields, values }
     }
 
     protected buildOrder(): string {
@@ -347,7 +418,7 @@ export class SqlQueryBuilder {
         let strs = []
         // key 就是查询操作符
         for (let key in value) {
-            // @todo 暂且跳过[非]查询操作符，这种情况应该报错，建议使用类实现属性管理错误
+            // @todo 暂且跳过[非]查询操作符，这种情况应该报错?
             if (!this.isQueryOperator(key)) {
                 continue
             }
@@ -463,6 +534,10 @@ export class SqlQueryBuilder {
                 break
             case QUERY_COMMANDS.NIN:
                 op = 'not in'
+                break
+            case QUERY_COMMANDS.LIKE:
+                op = 'like'
+                break
         }
 
         assert(op != '', `invalid query: unsupperted query operator ${operator}`)

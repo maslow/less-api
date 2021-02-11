@@ -139,9 +139,27 @@ describe('class SqlQueryBuilder', () => {
 
     const sql = builder.build()
     const values = builder.values()
-    console.log({sql, values})
+    console.log({ sql, values })
 
     assert.strictEqual(sql, 'where 1=1 and f1 = ? and (f2 = ? or f6 < ? or (f6 > ? and f6 < ?))')
     strictCompareArray(values, [0, 1, 4000, 6000, 8000])
+  })
+
+  it('Query CASE 9: like shoud be ok', () => {
+    const query = {
+      f1: 0,
+      f2: {
+        $like: '%keyword%'
+      }
+    }
+
+    const builder = new SqlQueryBuilder(query)
+    assert(builder instanceof SqlQueryBuilder)
+
+    const sql = builder.build()
+    const values = builder.values()
+
+    assert.strictEqual(sql, 'where 1=1 and f1 = ? and f2 like ?')
+    strictCompareArray(values, [0, '%keyword%'])
   })
 })

@@ -138,6 +138,27 @@ describe('Database Mysql read', function () {
     }
   })
 
+  it('read with like operator passed', async () => {
+    const params = {
+      collection: table,
+      action: ActionType.READ,
+      query: {
+        name: {
+          $like: "less-api%"
+        }
+      },
+    }
+    const r = await entry.execute(params)
+
+    assert.ok(r.list instanceof Array)
+    assert.strictEqual(r.list.length, 2)
+    assert.strictEqual(r.list[0].id, 111)
+    assert.strictEqual(r.list[0].name, 'less-api-1')
+    assert.strictEqual(r.list[0].age, 2)
+
+    assert.strictEqual(r.list[1].id, 112)
+  })
+
   after(async () => {
     await accessor.conn.execute(`drop table ${table}`)
     accessor.close()

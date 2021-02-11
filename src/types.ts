@@ -110,7 +110,8 @@ export const QUERY_COMMANDS = {
   LTE: '$lte',
   IN: '$in',
   NIN: '$nin',
-  GEO_NEAR: '$geoNear',
-  GEO_WITHIN: '$geoWithin',
-  GEO_INTERSECTS: '$geoIntersects'
+  // GEO_NEAR: '$geoNear',
+  // GEO_WITHIN: '$geoWithin',
+  // GEO_INTERSECTS: '$geoIntersects'
+  LIKE: '$like', // only for SQL query
 }

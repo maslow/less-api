@@ -3,7 +3,8 @@
     ".read": true,
     ".update": true,
     ".add": true,
-    ".remove": true
+    ".remove": true,
+    ".count": true
   },
   "articles": {
     ".read": true,

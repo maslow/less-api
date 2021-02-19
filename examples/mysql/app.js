@@ -52,7 +52,7 @@ app.post('/entry', async (req, res) => {
   if (result.errors) {
     return res.send({
       code: 1,
-      data: errors
+      data: result.errors
     })
   }
 

@@ -40,7 +40,7 @@ export default {
     // 添加目录
     async add() {
       await db.collection('categories').add({
-        or: this.name,
+        name: this.name,
         created_at: Math.floor(Date.now() / 1000),
       })
 

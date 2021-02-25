@@ -4,11 +4,9 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "less-api-client": "^0.3.0"
+    "less-api-client": "^0.5.0"
   },
-  "devDependencies": {},
-  "scripts": {
-  },
+  "scripts": {},
   "author": "",
   "license": "ISC"
 }

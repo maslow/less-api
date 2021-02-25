@@ -71,7 +71,6 @@ export class MysqlAccessor implements AccessorInterface {
     protected async read(_collection: string, params: Params): Promise<ReadResult> {
         const { sql, values } = SqlBuilder.from(params).select()
         const [rows] = await this.conn.execute<RowDataPacket[]>(sql, values)
-
         return {
             list: rows
         }

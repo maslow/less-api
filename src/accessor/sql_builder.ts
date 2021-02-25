@@ -273,7 +273,13 @@ export class SqlBuilder {
         assert(!(this.data instanceof Array), `invalid data: data cannot be Array while using SQL`)
 
         const keys = Object.keys(this.data)
+        keys.forEach(this.checkField)
         assert(keys.length, `invalid data: data can NOT be empty object`)
+    }
+
+    protected checkField(field_name) {
+        if (SecurityCheck.checkField(field_name) === false)
+            throw new Error(`invalid field : '${field_name}'`)
     }
 }
 
@@ -319,6 +325,8 @@ export class SqlQueryBuilder {
 
     // 处理一条查询属性（逻辑操作符属性、值属性、查询操作符属性）
     protected buildOne(key: string, value: any) {
+        this.checkField(key)
+
         // 若是逻辑操作符
         if (this.isLogicOperator(key)) {
             return this.processLogicOperator(key, value)
@@ -390,6 +398,8 @@ export class SqlQueryBuilder {
 
     // 处理值属性
     protected processBasicValue(field: string, value: string | number | boolean | [], operator: string) {
+        this.checkField(field)
+
         const op = this.mapQueryOperator(operator)
 
         let _v = null
@@ -399,14 +409,12 @@ export class SqlQueryBuilder {
         if ([IN, NIN].includes(operator)) {
             (value as any[]).forEach(v => this.addValue(v))
 
-            // const arr = (value as any[]).map(v => this.wrapBasicValue(v))
             const arr = (value as any[]).map(_ => '?')
             const vals = arr.join(',')
             _v = `(${vals})`
         } else {
             assert(this.isBasicValue(value), `invalid query: typeof '${field}' must be number | string | boolean, but ${typeof value} given`)
             this.addValue(value)
-            // _v = this.wrapBasicValue(value as any)
             _v = '?'
         }
 
@@ -418,6 +426,7 @@ export class SqlQueryBuilder {
         let strs = []
         // key 就是查询操作符
         for (let key in value) {
+            this.checkField(key)
             // @todo 暂且跳过[非]查询操作符，这种情况应该报错?
             if (!this.isQueryOperator(key)) {
                 continue
@@ -435,8 +444,7 @@ export class SqlQueryBuilder {
     }
 
     protected addValue(value: any) {
-        const val = this.wrapBasicValue(value)
-        this._values.push(val)
+        this._values.push(value)
     }
 
     // 是否为值属性(number, string, boolean)
@@ -562,13 +570,68 @@ export class SqlQueryBuilder {
         return op
     }
 
-    // 处理基本类型的值（SQL化）
-    protected wrapBasicValue(value: string | number | boolean) {
-        let _v = value
-        // 暂且注释掉，可能用不到了
-        // if (typeof value === 'string') {
-        //     _v = `"${value}"`
-        // }
-        return _v
+    protected checkField(field_name) {
+        if (SecurityCheck.checkField(field_name) === false)
+            throw new Error(`invalid field : '${field_name}'`)
+    }
+}
+
+/**
+ * 安全检测工具： SQL注入，字段合法性
+ */
+class SecurityCheck {
+
+    // 检查字段名是否合法：data field, query field
+    static checkField(name: string): boolean {
+        if (this.isOperator(name)) {
+            return true
+        }
+
+        const black_list = [
+            ' ',
+            '#',
+            'or',
+            ';',
+            `'`,
+            `"`,
+            '`',
+            '-',
+            '/',
+            '*',
+            '\\',
+        ]
+        if (this.containStrs(name, black_list)) {
+            return false
+        }
+
+        return true
+    }
+
+    static containStrs(source: string, str_list: string[]): boolean {
+        for (const ch of str_list) {
+            if (source.indexOf(ch) >= 0)
+                return true
+        }
+
+        return false
+    }
+
+    // 是否为逻辑操作符
+    static isLogicOperator(key: string): boolean {
+        const keys = Object.keys(LOGIC_COMMANDS)
+            .map(k => LOGIC_COMMANDS[k])
+        return keys.includes(key)
+    }
+
+    // 是否为查询操作符(QUERY_COMMANDS)
+    static isQueryOperator(key: string): boolean {
+        const keys = Object.keys(QUERY_COMMANDS)
+            .map(k => QUERY_COMMANDS[k])
+        return keys.includes(key)
+    }
+
+    // 是否为操作符
+    static isOperator(key: string): boolean {
+        return this.isLogicOperator(key) || this.isQueryOperator(key)
     }
 }

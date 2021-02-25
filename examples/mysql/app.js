@@ -52,16 +52,23 @@ app.post('/entry', async (req, res) => {
   if (result.errors) {
     return res.send({
       code: 1,
-      data: result.errors
+      error: result.errors
     })
   }
 
   // execute query
-  const data = await entry.execute(params)
-  return res.send({
-    code: 0,
-    data
-  })
+  try {
+    const data = await entry.execute(params)
+    return res.send({
+      code: 0,
+      data
+    })
+  } catch (error) {
+    return res.send({
+      code: 2,
+      error: error.toString()
+    })
+  }
 })
 
 app.listen(8080, () => console.log('listening on 8080'))

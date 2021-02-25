@@ -15,8 +15,8 @@
 import { Cloud } from 'less-api-client'
 
 const cloud = new Cloud({
-  entryUrl: 'http://localhost:8080/entry',
-  getAccessToken: () => null,
+  entryUrl: 'http://47.96.236.219:19000/admin-entry',
+  getAccessToken: () => "9b34131c-50b0-498c-acb1-fe2810c0e8e4",
 })
 
 const db = cloud.database()

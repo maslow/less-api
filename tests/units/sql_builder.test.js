@@ -71,6 +71,26 @@ describe('class SqlBuilder', () => {
     strictCompareArray(values, [0, 'abc'])
   })
 
+  it('left join: passed', () => {
+    const params = {
+      collection: 'test_table',
+      action: ActionType.READ,
+      query: { id: 0, name: 'abc' },
+      joins: [
+        { collection: 'x_table', type: 'left', leftKey: 'xid', rightKey: 'id' },
+        { collection: 'y_table', type: 'left', leftKey: 'yid', rightKey: 'id' },
+      ]
+    }
+
+    const builder = new SqlBuilder(params)
+    assert(builder instanceof SqlBuilder)
+
+    const { sql, values } = builder.select()
+
+    assert.strictEqual(sql, 'select * from test_table  left join x_table on test_table.xid = x_table.id left join y_table on test_table.yid = y_table.id where 1=1 and id = ? and name = ?  limit 0,100')
+    strictCompareArray(values, [0, 'abc'])
+  })
+
   it('count() with query: passed', () => {
     const params = {
       collection: 'test_table',

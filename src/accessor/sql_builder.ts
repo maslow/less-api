@@ -1,5 +1,5 @@
 import assert = require("assert")
-import { Direction, LOGIC_COMMANDS, Order, Params, QUERY_COMMANDS, UPDATE_COMMANDS } from "../types"
+import { Direction, JoinType, LOGIC_COMMANDS, Order, Params, QUERY_COMMANDS, UPDATE_COMMANDS } from "../types"
 
 
 /**
@@ -40,11 +40,19 @@ export class SqlBuilder {
 
     select() {
         const fields = this.buildProjection()
+        const joins = this.buildJoins()
         const query = this.buildQuery()
         const orderBy = this.buildOrder()
         const limit = this.buildLimit()
 
-        const sql = `select ${fields} from ${this.table} ${query} ${orderBy} ${limit}`
+        /**
+         * 因为 join 功能是后加的， 空 joins 拼入 sql 后，会增加两
+         * 这样会导致，原来的单元测试用例都无法通过的问题
+         * 如果 joins 为空，那么就只插入空串，无空格即可
+         */
+        const wrapped_joins = joins == '' ? '' : ` ${joins} `
+
+        const sql = `select ${fields} from ${this.table} ${wrapped_joins}${query} ${orderBy} ${limit}`
         const values = this.values()
         return {
             sql,
@@ -106,6 +114,31 @@ export class SqlBuilder {
 
     protected addValues(values: any[]) {
         this._values.push(...values)
+    }
+
+    // 构建联表语句(join)
+    protected buildJoins(): string {
+        const joins = this.params.joins || []
+        const leftTable = this.params.collection
+
+        if (joins.length === 0) return ''
+        const strs = []
+        for (const join of joins) {
+            const { collection, leftKey, rightKey, type } = join
+            assert(this.checkJoinType(type), `invalid join type: ${type}`)
+            this.checkField(collection)
+            this.checkField(leftKey)
+            this.checkField(rightKey)
+            const rightTable = collection
+            const str = `${type} join ${rightTable} on ${leftTable}.${leftKey} = ${rightTable}.${rightKey}`
+            strs.push(str)
+        }
+        return strs.join(' ')
+    }
+
+    protected checkJoinType(joinType: string): boolean {
+        const types: string[] = [JoinType.FULL, JoinType.INNER, JoinType.LEFT, JoinType.RIGHT]
+        return types.includes(joinType)
     }
 
     // build query string

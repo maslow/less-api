@@ -32,9 +32,25 @@ export interface Order {
   field: string
 }
 
+// left, right, inner, full
+export enum JoinType {
+  INNER = 'inner',
+  LEFT = 'left',
+  RIGHT = 'right',
+  FULL = 'full'
+}
+
+interface JoinParam {
+  collection: string,
+  type: JoinType,
+  leftKey: string,
+  rightKey: string
+}
+
 export interface Params {
   collection: string,
   action: ActionType,
+  joins?: JoinParam[], // SQL join
   query?: any,
   data?: any,
   order?: Order[],

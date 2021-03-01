@@ -13,7 +13,7 @@ interface DbRulesTree {
 
 // 集合规则
 type CollectionRules = {
-  [permission in PermissionType]: PermissionRule[];
+  [permission in PermissionType]: PermissionRule[]
 }
 
 // 权限规则
@@ -77,13 +77,24 @@ export class Ruler {
 
     const tree = {} as DbRulesTree
 
+    // 处理每张数据库表的访问规则
     for (let collection in rules) {
-      const permissions = rules[collection]        // permissions is an object, like { ".read": {...}, '.update': {...} }
+      // 表权限，是一个对象， like { ".read": {...}, '.update': {...} }
+      const permissions = rules[collection]
+
       tree[collection] = {} as CollectionRules
-      Object.keys(permissions).forEach(pn => {
-        tree[collection][pn] = this.instantiateValidators(permissions[pn])
-      })
+
+      // 用户配置的「权限名」列表, like ['.read', '.update' ...]
+      const perm_types = Object.keys(permissions) as PermissionType[]
+
+      // 处理每个权限
+      for (let ptype of perm_types) {
+        // 权限对应的验证器配置, like { 'condition': true, 'data': {...} }
+        const permissionConfig = permissions[ptype]
+        tree[collection][ptype] = this.instantiateValidators(permissionConfig)
+      }
     }
+
     this.rules = tree
     return true
   }
@@ -92,7 +103,7 @@ export class Ruler {
    * 实例化验证器
    * @param permissionRules 权限规则
    */
-  private instantiateValidators(permissionRules: any): PermissionRule[]{
+  private instantiateValidators(permissionRules: any): PermissionRule[] {
     assert.notEqual(permissionRules, undefined, 'permissionRules is undefined')
 
     let rules = permissionRules
@@ -110,13 +121,22 @@ export class Ruler {
 
     const result: PermissionRule[] = rules.map(raw_rule => {
       const prule: PermissionRule = {}
-      for (let name in raw_rule) {
-        const handler = this.validators[name]
+
+      // 检查用户配置的验证器是否已注册
+      for (let vname in raw_rule) {
+        const handler = this.validators[vname]
         if (!handler) {
-          throw new Error(`unknown validator '${name}' in your rules`)
+          throw new Error(`unknown validator '${vname}' in your rules`)
         }
-        const config = raw_rule[name]
-        prule[name] = new Processor(name, handler, config)
+      }
+
+      // 逐一实例化验证器
+      for (let vname in this.validators) {
+        const handler = this.validators[vname]
+
+        // 如果用户并未配置此验证器，则其配置缺省为 undefined，验证器实现时需处理缺省情况
+        const config = raw_rule[vname]
+        prule[vname] = new Processor(vname, handler, config)
       }
       return prule
     })

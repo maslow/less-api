@@ -6,7 +6,10 @@ import { LOGIC_COMMANDS } from '../../types'
 const default_allowed_fields = Object.values(LOGIC_COMMANDS);
 
 export const QueryHandler: Handler = async function (config, context) {
-
+    // 缺省时，直接通过
+    if (config === undefined) {
+        return null
+    }
     const { query } = context.params
 
     if (!query) return 'query is undefined'

@@ -4,7 +4,12 @@ import { isAllowedFields, execScript } from '../utils'
 import { UPDATE_COMMANDS } from '../..'
 
 
-export const DataHandler: Handler = async function (config, context){
+export const DataHandler: Handler = async function (config, context) {
+    // 缺省时，直接通过
+    if (config === undefined) {
+        return null
+    }
+    
     const { data, merge } = context.params
     
     if(!data) return 'data is undefined'

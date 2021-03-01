@@ -2,6 +2,13 @@ import { Handler } from '../../processor'
 import { ActionType } from "../../types"
 import { execScript } from '../utils'
 
+/**
+ * 是否允许用户操作多条数据
+ * 1. 读操作默认允许查询多条
+ * 2. 写操作默认不允许多条操作
+ * @param config 
+ * @param context 
+ */
 export const MultiHandler: Handler = async function (config, context){
 
     const { query, multi, data, action } = context.params

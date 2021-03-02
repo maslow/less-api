@@ -1,5 +1,5 @@
 import assert = require("assert")
-import { Direction, JoinType, LOGIC_COMMANDS, Order, Params, QUERY_COMMANDS, UPDATE_COMMANDS } from "../types"
+import { Direction, JoinParam, JoinType, LOGIC_COMMANDS, Order, Params, QUERY_COMMANDS, UPDATE_COMMANDS } from "../types"
 
 
 /**
@@ -36,6 +36,10 @@ export class SqlBuilder {
 
     get data(): any {
         return this.params.data || {}
+    }
+
+    get joins(): JoinParam[] {
+        return this.params.joins || []
     }
 
     select() {
@@ -118,7 +122,7 @@ export class SqlBuilder {
 
     // 构建联表语句(join)
     protected buildJoins(): string {
-        const joins = this.params.joins || []
+        const joins = this.joins
         const leftTable = this.params.collection
 
         if (joins.length === 0) return ''
@@ -278,6 +282,7 @@ export class SqlBuilder {
     protected buildProjection(): string {
         let fields = []
         for (const key in this.projection) {
+            this.checkProjection(key)
             const value = this.projection[key]
             assert(value, `invalid query: value of projection MUST be {true} or {1}, {false} or {0} is not supported in sql`)
             fields.push(key)
@@ -310,9 +315,15 @@ export class SqlBuilder {
         assert(keys.length, `invalid data: data can NOT be empty object`)
     }
 
-    protected checkField(field_name) {
+    protected checkField(field_name: string) {
         if (SecurityCheck.checkField(field_name) === false)
             throw new Error(`invalid field : '${field_name}'`)
+    }
+
+    protected checkProjection(name: string) {
+        if (SecurityCheck.checkProjection(name) === false) {
+            throw new Error(`invalid projection field : '${name}'`)
+        }
     }
 }
 
@@ -632,6 +643,30 @@ class SecurityCheck {
             '/',
             '*',
             '\\',
+            '+',
+            '%'
+        ]
+        if (this.containStrs(name, black_list)) {
+            return false
+        }
+
+        return true
+    }
+
+    // 检查字段名是否合法：data field, query field
+    static checkProjection(name: string): boolean {
+        const black_list = [
+            '#',
+            'or',
+            ';',
+            `'`,
+            `"`,
+            '`',
+            '+',
+            '-',
+            '/',
+            '\\',
+            '%',
         ]
         if (this.containStrs(name, black_list)) {
             return false

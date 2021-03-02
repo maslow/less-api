@@ -40,7 +40,7 @@ export enum JoinType {
   FULL = 'full'
 }
 
-interface JoinParam {
+export interface JoinParam {
   collection: string,
   type: JoinType,
   leftKey: string,
@@ -77,24 +77,24 @@ const CountAction: Action = { type: ActionType.COUNT, permission: PermissionType
 export function getAction(actionName: ActionType): Action | null {
 
   let action: Action
-  switch(actionName) {
+  switch (actionName) {
     case ActionType.READ:
       action = ReadAction
       break
     case ActionType.UPDATE:
-        action = UpdateAction
-        break
+      action = UpdateAction
+      break
     case ActionType.ADD:
-        action = AddAction
-        break
+      action = AddAction
+      break
     case ActionType.REMOVE:
-        action = RemoveAction
-        break
+      action = RemoveAction
+      break
     case ActionType.COUNT:
-        action = CountAction
-        break
+      action = CountAction
+      break
     default:
-        action = null
+      action = null
   }
   return action
 }

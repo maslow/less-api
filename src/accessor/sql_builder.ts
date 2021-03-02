@@ -634,7 +634,7 @@ class SecurityCheck {
         const black_list = [
             ' ',
             '#',
-            'or',
+            // ' or ',
             ';',
             `'`,
             `"`,

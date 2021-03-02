@@ -62,11 +62,11 @@ export interface Params {
   merge?: boolean,
 }
 
-const ReadAcceptParams = ['query', 'order', 'offset', 'limit', 'projection', 'multi']
-const UpdateAcceptParams = ['query', 'data', 'multi', 'upsert', 'merge']
+const ReadAcceptParams = ['query', 'order', 'offset', 'limit', 'projection', 'multi', 'joins']
+const UpdateAcceptParams = ['query', 'data', 'multi', 'upsert', 'merge', 'joins']
 const AddAcceptParams = ['data', 'multi']
-const RemoveAcceptParams = ['query', 'multi']
-const CountAcceptParams = ['query']
+const RemoveAcceptParams = ['query', 'multi', 'joins']
+const CountAcceptParams = ['query', 'joins']
 
 const ReadAction: Action = { type: ActionType.READ, permission: PermissionType.READ, fields: ReadAcceptParams }
 const UpdateAction: Action = { type: ActionType.UPDATE, permission: PermissionType.UPDATE, fields: UpdateAcceptParams }

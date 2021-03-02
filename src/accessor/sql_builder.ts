@@ -657,7 +657,7 @@ class SecurityCheck {
     static checkProjection(name: string): boolean {
         const black_list = [
             '#',
-            'or',
+            ' or ',
             ';',
             `'`,
             `"`,

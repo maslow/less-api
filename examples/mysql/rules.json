@@ -7,7 +7,12 @@
     ".count": true
   },
   "articles": {
-    ".read": true,
+    ".read": {
+      "condition": true,
+      "join": [
+        "categories"
+      ]
+    },
     ".update": true,
     ".add": true,
     ".remove": true

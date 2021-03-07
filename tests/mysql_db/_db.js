@@ -5,7 +5,8 @@ const dbconfig = {
   user: 'root',
   password: 'kissme',
   host: 'localhost',
-  port: 3306
+  port: 3306,
+  connectionLimit: 30,
 }
 
 module.exports = dbconfig

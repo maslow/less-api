@@ -60,9 +60,11 @@ export interface Params {
   multi?: boolean,
   upsert?: boolean,
   merge?: boolean,
+  // @see https://github.com/mysqljs/mysql#joins-with-overlapping-column-names
+  nested?: boolean  // nested table name, when use join, like [{ tableName: {id: 1, name: 'xxx'}, subTable: {id: 1, age: 1}}]
 }
 
-const ReadAcceptParams = ['query', 'order', 'offset', 'limit', 'projection', 'multi', 'joins']
+const ReadAcceptParams = ['query', 'order', 'offset', 'limit', 'projection', 'multi', 'joins', 'nested']
 const UpdateAcceptParams = ['query', 'data', 'multi', 'upsert', 'merge', 'joins']
 const AddAcceptParams = ['data', 'multi']
 const RemoveAcceptParams = ['query', 'multi', 'joins']

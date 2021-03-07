@@ -1,6 +1,6 @@
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
 import { Params, ActionType } from '../types'
-import { createConnection, Connection, ConnectionOptions, ResultSetHeader, OkPacket, RowDataPacket } from 'mysql2/promise'
+import { createPool, Pool, ConnectionOptions, ResultSetHeader, OkPacket, RowDataPacket } from 'mysql2/promise'
 import { SqlBuilder } from "./sql_builder"
 
 /**
@@ -12,21 +12,24 @@ export class MysqlAccessor implements AccessorInterface {
     readonly type: string = 'mysql'
     readonly db_name: string
     readonly options: ConnectionOptions
-    conn: Connection
+    readonly pool: Pool
+
+    get conn(): Pool {
+        return this.pool
+    }
 
     constructor(options?: ConnectionOptions) {
         this.db_name = options.database
-        this.conn = null
         this.options = options
+        this.pool = createPool(options)
     }
 
     async init() {
-        this.conn = await createConnection(this.options)
         return
     }
 
     close() {
-        this.conn.destroy()
+        this.conn.end()
     }
 
     async execute(params: Params): Promise<ReadResult | UpdateResult | AddResult | RemoveResult | CountResult | never> {
@@ -70,7 +73,8 @@ export class MysqlAccessor implements AccessorInterface {
 
     protected async read(_collection: string, params: Params): Promise<ReadResult> {
         const { sql, values } = SqlBuilder.from(params).select()
-        const [rows] = await this.conn.execute<RowDataPacket[]>(sql, values)
+        const nestTables = params.nested ?? false
+        const [rows] = await this.conn.execute<RowDataPacket[]>({ sql, values, nestTables })
         return {
             list: rows
         }

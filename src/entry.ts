@@ -2,6 +2,7 @@ import { Handler } from './processor'
 import { Ruler } from './ruler'
 import { AccessorInterface } from './accessor/accessor'
 import { Params, ActionType, getAction } from "./types"
+import assert = require('assert')
 
 export class Entry {
 
@@ -17,11 +18,21 @@ export class Entry {
     await this.accessor.init()
   }
 
+  async setAccessor(accessor: AccessorInterface) {
+    this.accessor = accessor
+    await this.init()
+  }
+
+  async setRuler(ruler: Ruler) {
+    this.ruler = ruler
+  }
+
   loadRules(rules: object): boolean {
     return this.ruler.load(rules)
   }
 
   async execute(params: Params) {
+    assert(this.accessor, 'accessor not configured for Entry')
     return await this.accessor.execute(params)
   }
 

@@ -214,7 +214,7 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
             "condition": "$userid && $userid === data.sender",
             "data": {
                 "content": {"length": [1, 20480], "required": true},
-                "receiver": {"exists": {"collection": "users", "field": "_id"}},
+                "receiver": {"exists": "/users/id"},
                 "read": { "in": [false], "default": false }
             }
         },

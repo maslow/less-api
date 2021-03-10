@@ -1,5 +1,5 @@
 import { AccessorInterface } from "../accessor"
-import { Db } from "@cloudbase/database"
+import { Db } from 'less-api-client'
 import { Request } from "./request"
 
 export interface DbConfig {

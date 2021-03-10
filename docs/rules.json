@@ -32,7 +32,7 @@
         ".remove": {
             "condition":"$admin === true",
             "query": {
-                "_id": "get(value).author_id === $userid"
+                "id": "get($value).author_id === $userid // TODO 尚未实现 get 函数"
             }
         }
     }

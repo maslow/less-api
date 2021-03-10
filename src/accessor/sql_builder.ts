@@ -183,7 +183,7 @@ export class SqlBuilder {
             assert(typeof _data === 'object', 'invalid data: value of $set must be object')
             for (const key in _data) {
                 const _val = _data[key]
-                assert(this.isBasicValue(_val), `invalid data: value of data only support BASIC VALUE(number|boolean|string|undefined), {${key}:${_val}} given`)
+                assert(this.isBasicValue(_val), `invalid data: value of data only support BASIC VALUE(number|boolean|string|undefined|null), {${key}:${_val}} given`)
                 this.addValues([_val])
                 strs.push(`${key}=?`)
             }
@@ -232,7 +232,7 @@ export class SqlBuilder {
         const fields = Object.keys(this.data)
         const values = fields.map(key => {
             const _val = this.data[key]
-            assert(this.isBasicValue(_val), `invalid data: value of data only support BASIC VALUE(number|boolean|string|undefined), {${key}:${_val}} given`)
+            assert(this.isBasicValue(_val), `invalid data: value of data only support BASIC VALUE(number|boolean|string|undefined|null), {${key}:${_val}} given`)
             this.addValues([_val])
             return '?'
         })
@@ -247,7 +247,7 @@ export class SqlBuilder {
         const fields = Object.keys(this.data)
         const values = fields.map(key => {
             const _val = this.data[key]
-            assert(this.isBasicValue(_val), `invalid data: value of data only support BASIC VALUE(number|boolean|string|undefined), {${key}:${_val}} given`)
+            assert(this.isBasicValue(_val), `invalid data: value of data only support BASIC VALUE(number|boolean|string|undefined|null), {${key}:${_val}} given`)
             return _val
         })
 
@@ -297,8 +297,11 @@ export class SqlBuilder {
         return this._values || []
     }
 
-    // 是否为值属性(number, string, boolean)
+    // 是否为值属性(number, string, boolean, undefine, null)
     protected isBasicValue(value) {
+        if (value === null) {
+            return true
+        }
         const type = typeof value
         return ['number', 'string', 'boolean', 'undefined'].includes(type)
     }
@@ -457,7 +460,7 @@ export class SqlQueryBuilder {
             const vals = arr.join(',')
             _v = `(${vals})`
         } else {
-            assert(this.isBasicValue(value), `invalid query: typeof '${field}' must be number | string | boolean, but ${typeof value} given`)
+            assert(this.isBasicValue(value), `invalid query: typeof '${field}' must be number|string|boolean|undefined|null, but ${typeof value} given`)
             this.addValue(value)
             _v = '?'
         }

@@ -49,14 +49,7 @@ export class SqlBuilder {
         const orderBy = this.buildOrder()
         const limit = this.buildLimit()
 
-        /**
-         * 因为 join 功能是后加的， 空 joins 拼入 sql 后，会增加两
-         * 这样会导致，原来的单元测试用例都无法通过的问题
-         * 如果 joins 为空，那么就只插入空串，无空格即可
-         */
-        const wrapped_joins = joins == '' ? '' : ` ${joins} `
-
-        const sql = `select ${fields} from ${this.table} ${wrapped_joins}${query} ${orderBy} ${limit}`
+        const sql = `select ${fields} from ${this.table} ${joins}${query} ${orderBy} ${limit}`
         const values = this.values()
         return {
             sql,
@@ -68,6 +61,7 @@ export class SqlBuilder {
         this.checkData()
 
         const data = this.buildUpdateData()
+        const joins = this.buildJoins()
         const query = this.buildQuery()
 
         // 当 multi 为 true 时允许多条更新，反之则只允许更新一条数据
@@ -76,20 +70,21 @@ export class SqlBuilder {
         const limit = multi ? '' : `limit 1`
         const orderBy = this.buildOrder()
 
-        const sql = `update ${this.table} ${data} ${query} ${orderBy} ${limit}`
+        const sql = `update ${this.table} ${data} ${joins}${query} ${orderBy} ${limit}`
         const values = this.values()
 
         return { sql, values }
     }
 
     delete() {
+        const joins = this.buildJoins()
         const query = this.buildQuery()
 
         // 当 multi 为 true 时允许多条更新，反之则只允许更新一条数据
         const multi = this.params.multi
         const limit = multi ? '' : `limit 1`
         const orderBy = this.buildOrder()
-        const sql = `delete from ${this.table} ${query} ${orderBy} ${limit} `
+        const sql = `delete from ${this.table} ${joins}${query} ${orderBy} ${limit} `
         const values = this.values()
         return {
             sql,
@@ -106,9 +101,10 @@ export class SqlBuilder {
     }
 
     count() {
+        const joins = this.buildJoins()
         const query = this.buildQuery()
 
-        const sql = `select count(*) as total from ${this.table} ${query}`
+        const sql = `select count(*) as total from ${this.table} ${joins}${query}`
         const values = this.values()
         return {
             sql,
@@ -137,7 +133,15 @@ export class SqlBuilder {
             const str = `${type} join ${rightTable} on ${leftTable}.${leftKey} = ${rightTable}.${rightKey}`
             strs.push(str)
         }
-        return strs.join(' ')
+
+        const ret = strs.join(' ')
+        /**
+        * 因为 join 功能是后加的， 空 joins 拼入 sql 后，会增加两
+        * 这样会导致，原来的单元测试用例都无法通过的问题
+        * 如果 joins 为空，那么就只插入空串，无空格即可
+        */
+        const wrapped_joins = ret == '' ? '' : ` ${ret} `
+        return wrapped_joins
     }
 
     protected checkJoinType(joinType: string): boolean {

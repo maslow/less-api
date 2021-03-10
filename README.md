@@ -268,6 +268,27 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
     docker run --name mysqltest -e MYSQL_ROOT_PASSWORD=kissme -e MYSQL_DATABASE=testdb -d -p 3306:3306 mysql
 ```
 
+手动创建测试使用的数据表：
+```sql
+create table IF NOT EXISTS categories (
+  id int not null auto_increment,
+  name varchar(64) not null, 
+  created_at int, 
+  primary key(id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+create table IF NOT EXISTS articles (
+  id int not null auto_increment,
+  title varchar(64) not null, 
+  category_id int,
+  content text,
+  created_at int, 
+  updated_at int,
+  created_by int,
+  primary key(id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
 执行测试用例
 
 ```sh

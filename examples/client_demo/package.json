@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "less-api-client": "^0.6.4"
+    "less-api-client": "^0.7.0"
   },
   "scripts": {},
   "author": "",

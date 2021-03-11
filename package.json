@@ -22,7 +22,7 @@
   "author": "maslow(wangfugen@126.com)",
   "license": "ISC",
   "dependencies": {
-    "less-api-client": "^0.6.4",
+    "less-api-database": "^0.2.0",
     "mongodb": "^3.6.3",
     "mysql2": "^2.2.5",
     "validator": "^12.0.0"

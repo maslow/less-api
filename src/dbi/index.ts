@@ -1,5 +1,5 @@
 import { AccessorInterface } from "../accessor"
-import { Db } from 'less-api-client'
+import { Db } from 'less-api-database'
 import { Request } from "./request"
 
 export interface DbConfig {

@@ -301,6 +301,14 @@ create table IF NOT EXISTS articles (
     docker rm -f mysqltest
 ```
 
+### PostgreSQL
+
+```sh
+docker run --name pgdb -e POSTGRESQL_PASSWORD=kissme -e POSTGRESQL_DATABASE=testdb -p "5432:5432" -d  bitnami/postgresql
+```
+
+尚未支持 PostgreSQL。
+
 ### 执行所有测试用例
 
 > 请确保已经运行 mongo 和 mysql 测试的实例；

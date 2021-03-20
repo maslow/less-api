@@ -25,14 +25,14 @@ export class MongoAccessor implements AccessorInterface {
         return
     }
 
-    close(){
+    close() {
         this.conn.close()
     }
 
     async execute(params: Params): Promise<ReadResult | UpdateResult | AddResult | RemoveResult | CountResult | never> {
         const { collection, action, query } = params
 
-        if (query && query._id) {
+        if (query && typeof query._id === 'string') {
             query._id = new ObjectID(query._id)
         }
 

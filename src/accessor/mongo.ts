@@ -32,9 +32,19 @@ export class MongoAccessor implements AccessorInterface {
     async execute(params: Params): Promise<ReadResult | UpdateResult | AddResult | RemoveResult | CountResult | never> {
         const { collection, action, query } = params
 
-        if (query && typeof query._id === 'string') {
-            query._id = new ObjectID(query._id)
+        // 处理 _id 的类型问题
+        {
+            const q = query ?? {}
+
+            if (typeof q._id === 'string') {
+                query._id = new ObjectID(query._id)
+            }
+
+            if (q._id && (q._id.$in instanceof Array)) {
+                query._id.$in = query._id.$in.map((id: string) => new ObjectID(id))
+            }
         }
+
 
         if (action === ActionType.READ) {
             return await this.read(collection, params)

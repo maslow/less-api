@@ -5,6 +5,7 @@ import { Params, PermissionType, getAction } from './types'
 import { Handler, Processor, HandlerContext } from './processor'
 import * as BUILT_IN_VALIDATORS from './validators'
 import { AccessorInterface } from './accessor'
+import { DefaultLogger } from './logger'
 
 // 数据库规则
 interface DbRulesTree {
@@ -40,7 +41,7 @@ interface ValidatorMap {
 
 export class Ruler {
 
-  private readonly entry: Entry
+  readonly context: Entry
 
   /**
    * 验证器注册表
@@ -52,8 +53,15 @@ export class Ruler {
    */
   private rules: DbRulesTree
 
-  constructor(entry: Entry) {
-    this.entry = entry
+  private get logger() {
+    if (!this.context) {
+      return (new DefaultLogger(0))
+    }
+    return this.context.logger
+  }
+
+  constructor(context: Entry) {
+    this.context = context
     this.validators = {}
     this.rules = null
     this.init()
@@ -69,16 +77,18 @@ export class Ruler {
   }
 
   get accessor(): AccessorInterface {
-    return this.entry ? this.entry.accessor : null
+    return this.context ? this.context.accessor : null
   }
 
   load(rules: any) {
+    this.logger.debug(`load rules: `, JSON.stringify(rules))
     assert.equal(typeof rules, 'object', "invalid 'rules'")
 
     const tree = {} as DbRulesTree
 
     // 处理每张数据库表的访问规则
     for (let collection in rules) {
+      this.logger.info(`load collection rules: ${collection}...`)
       // 表权限，是一个对象， like { ".read": {...}, '.update': {...} }
       const permissions = rules[collection]
 
@@ -94,6 +104,8 @@ export class Ruler {
         tree[collection][ptype] = this.instantiateValidators(permissionConfig)
       }
     }
+
+    this.logger.info(`all rules loaded`)
 
     this.rules = tree
     return true
@@ -150,12 +162,14 @@ export class Ruler {
    * @param injections 
    */
   async validate(params: Params, injections: object): Promise<ValidateResult> {
-    const { collection, action: actionType } = params
+    const { collection, action: actionType, requestId } = params
+    this.logger.debug(`[${requestId}] ruler validate with injections: `, injections)
 
     let errors: ValidateError[] = []
 
     // 判断所访问的集合是否配置规则
     if (!this.collections.includes(collection)) {
+      this.logger.debug(`[${requestId}] validate() ${collection} not in rules`)
       const err: ValidateError = { type: 0, error: `collection "${collection}" not found` }
       errors.push(err)
       return { errors }
@@ -204,8 +218,16 @@ export class Ruler {
       }
     }
 
+
     // 没有匹配到任何规则，返回验证错误信息
-    if (!matched) return { errors }
+    if (!matched) {
+      this.logger.debug(`[${requestId}] validate rejected: ${actionType} -> ${collection} `)
+      this.logger.trace(`[${requestId}] validate errors: `, errors)
+      return { errors }
+    }
+
+    this.logger.debug(`[${requestId}] validate passed: ${actionType} -> ${collection} `)
+    this.logger.trace(`[${requestId}] matched: `, matched)
 
     return { matched }
   }

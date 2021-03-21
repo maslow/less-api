@@ -1,6 +1,7 @@
 const express = require('express')
 const { Entry, MongoAccessor } = require('../../dist')
-
+const { v4: uuidv4 } = require('uuid')
+const log4js = require('log4js')
 const rules = {
   categories: {
     '.read': true,
@@ -30,14 +31,18 @@ const dbOptions = {
 }
 const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', dbOptions)
 const entry = new Entry(accessor)
+const lessLogger = log4js.getLogger('less-api')
+lessLogger.level = 'debug'
+entry.setLogger(lessLogger)
 entry.init()
 entry.loadRules(rules)
 
 app.post('/entry', async (req, res) => {
+  const requestId = uuidv4()
   const { role, userId } = parseToken(req.headers['authorization'])
-
+  
   // parse params
-  const params = entry.parseParams(req.body)
+  const params = entry.parseParams({ ...req.body, requestId })
 
   const injections = {
     $role: role,

@@ -1,3 +1,4 @@
+import { Entry } from ".."
 import { Params } from "../types"
 
 export interface ReadResult {
@@ -26,7 +27,8 @@ export interface CountResult {
 
 export interface AccessorInterface {
     type: string,
-    init(): Promise<void>,
+    context: Entry,
+    init(context: Entry): Promise<void>,
     execute(params: Params): Promise<ReadResult | UpdateResult | AddResult | RemoveResult | CountResult>,
     get(collection: string, query: any): Promise<any>,
     close(): void

@@ -1,21 +1,30 @@
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
 import { Params, ActionType } from '../types'
+import { Entry } from ".."
 
 
 declare const uniCloud: any
 
 export class UniCloudAccessor implements AccessorInterface {
 
-    protected db : any
+    protected db: any
     readonly type: string = 'tcloud'
     /**
      * @see https://mongodb.github.io/node-mongodb-native/3.3/reference/connecting/connection-settings/
      */
-    constructor() {}
+    constructor() { }
+    private _context: Entry
+    get context() {
+        return this._context
+    }
 
-    async init() {
+    get logger() {
+        return this._context.getLogger()
+    }
+
+    async init(context: Entry) {
         this.db = uniCloud.database()
-        
+        this._context = context
     }
 
     close() {
@@ -64,7 +73,7 @@ export class UniCloudAccessor implements AccessorInterface {
 
         // calling concat
         const ordrs = order || []
-		ordrs.forEach((ord) => req = req.orderBy(ord.field, ord.direction))
+        ordrs.forEach((ord) => req = req.orderBy(ord.field, ord.direction))
         if (offset) req = req.skip(offset)
         if (projection) req = req.field(projection)
         if (limit) {
@@ -72,7 +81,7 @@ export class UniCloudAccessor implements AccessorInterface {
         }
 
         const res = await req.get(query)
-        return {list: res.data}
+        return { list: res.data }
     }
 
     protected async update(collection: string, params: Params): Promise<UpdateResult> {
@@ -81,10 +90,10 @@ export class UniCloudAccessor implements AccessorInterface {
         let { query, merge, data, multi } = params
 
         // dispatch calling function
-        let result : any
+        let result: any
         if (!merge) {
             result = await coll.doc(query._id).set(data)
-        } else if (merge && multi){
+        } else if (merge && multi) {
             result = await coll.where(query).update(data)
         } else {
             result = await coll.doc(query._id).update(data)
@@ -102,7 +111,7 @@ export class UniCloudAccessor implements AccessorInterface {
         let { data } = params
 
         const result = await coll.add(data)
-        
+
         return {
             _id: result.result || result.id,
             insertedCount: result.inserted
@@ -113,13 +122,13 @@ export class UniCloudAccessor implements AccessorInterface {
         const coll = this.db.collection(collection)
         let { query, multi } = params
         query = query || {}
-        let result : any
+        let result: any
         if (!multi) {
             result = await coll.doc(query._id).remove()
         } else {
             result = await coll.where(query).remove()
         }
-    
+
         return {
             deleted: result.deleted
         }

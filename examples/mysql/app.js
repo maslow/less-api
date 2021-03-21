@@ -1,6 +1,8 @@
 const express = require('express')
 const { Entry, MysqlAccessor } = require('../../dist')
 const rules = require('./rules.json')
+const { v4: uuidv4 } = require('uuid')
+const log4js = require('log4js')
 
 const app = new express()
 app.use(express.json())
@@ -33,14 +35,19 @@ const accessor = new MysqlAccessor({
 })
 
 const entry = new Entry(accessor)
+const lessLogger = log4js.getLogger('less-api')
+lessLogger.level = 'debug'
+entry.setLogger(lessLogger)
+
 entry.init()
 entry.loadRules(rules)
 
 app.post('/entry', async (req, res) => {
+  const requestId = uuidv4()
   const { role, userId } = parseToken(req.headers['authorization'])
 
   // parse params
-  const params = entry.parseParams(req.body)
+  const params = entry.parseParams({ ...req.body, requestId })
 
   const injections = {
     $role: role,
@@ -52,7 +59,8 @@ app.post('/entry', async (req, res) => {
   if (result.errors) {
     return res.send({
       code: 1,
-      error: result.errors
+      error: result.errors,
+      requestId
     })
   }
 
@@ -61,12 +69,14 @@ app.post('/entry', async (req, res) => {
     const data = await entry.execute(params)
     return res.send({
       code: 0,
-      data
+      data,
+      requestId
     })
   } catch (error) {
     return res.send({
       code: 2,
-      error: error.toString()
+      error: error.toString(),
+      requestId
     })
   }
 })

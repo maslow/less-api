@@ -50,6 +50,7 @@ export interface JoinParam {
 export interface Params {
   collection: string,
   action: ActionType,
+  requestId?: string,
   joins?: JoinParam[], // SQL join
   query?: any,
   data?: any,

@@ -2,6 +2,7 @@ import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, C
 import { Params, ActionType } from '../types'
 import { createPool, Pool, ConnectionOptions, ResultSetHeader, OkPacket, RowDataPacket } from 'mysql2/promise'
 import { SqlBuilder } from "./sql_builder"
+import { Entry } from ".."
 
 /**
  * Mysql Accessor
@@ -13,6 +14,15 @@ export class MysqlAccessor implements AccessorInterface {
     readonly db_name: string
     readonly options: ConnectionOptions
     readonly pool: Pool
+    private _context: Entry
+
+    get context() {
+        return this._context
+    }
+
+    get logger() {
+        return this._context.getLogger()
+    }
 
     get conn(): Pool {
         return this.pool
@@ -24,17 +34,21 @@ export class MysqlAccessor implements AccessorInterface {
         this.pool = createPool(options)
     }
 
-    async init() {
+    async init(context: Entry) {
+        this._context = context
+        this.logger.info(`mysql accessor init`)
         return
     }
 
-    close() {
-        this.conn.end()
+    async close() {
+        await this.conn.end()
+        this.logger.info('mysql connection closed')
     }
 
     async execute(params: Params): Promise<ReadResult | UpdateResult | AddResult | RemoveResult | CountResult | never> {
-        const { collection, action } = params
+        const { collection, action, requestId } = params
 
+        this.logger.info(`[${requestId}] mysql start executing {${collection}}: ` + JSON.stringify(params))
 
         if (action === ActionType.READ) {
             return await this.read(collection, params)
@@ -56,7 +70,9 @@ export class MysqlAccessor implements AccessorInterface {
             return await this.count(collection, params)
         }
 
-        throw new Error(`invalid 'action': ${action}`)
+        const error = `invalid 'action': ${action}`
+        this.logger.error(`[${requestId}] mysql end of executing occurred:` + error)
+        throw new Error(error)
     }
 
     async get(collection: string, query: any): Promise<any> {
@@ -72,8 +88,12 @@ export class MysqlAccessor implements AccessorInterface {
     }
 
     protected async read(_collection: string, params: Params): Promise<ReadResult> {
+        const { collection, requestId } = params
         const { sql, values } = SqlBuilder.from(params).select()
+
         const nestTables = params.nested ?? false
+
+        this.logger.debug(`[${requestId}] mysql read {${collection}}: `, { sql, values })
         const [rows] = await this.conn.execute<RowDataPacket[]>({ sql, values, nestTables })
         return {
             list: rows
@@ -81,7 +101,11 @@ export class MysqlAccessor implements AccessorInterface {
     }
 
     protected async update(_collection: string, params: Params): Promise<UpdateResult> {
+        const { collection, requestId } = params
+
         const { sql, values } = SqlBuilder.from(params).update()
+
+        this.logger.debug(`[${requestId}] mysql update {${collection}}: `, { sql, values })
         const [ret] = await this.conn.execute<ResultSetHeader>(sql, values)
 
         return {
@@ -92,7 +116,7 @@ export class MysqlAccessor implements AccessorInterface {
     }
 
     protected async add(_collection: string, params: Params): Promise<AddResult> {
-        let { multi } = params
+        let { multi, collection, requestId } = params
 
         if (multi) {
             console.warn('mysql add(): {multi == true} has been ignored!')
@@ -100,6 +124,7 @@ export class MysqlAccessor implements AccessorInterface {
 
         const { sql, values } = SqlBuilder.from(params).insert()
 
+        this.logger.debug(`[${requestId}] mysql add {${collection}}: `, { sql, values })
         const [ret] = await this.conn.execute<ResultSetHeader>(sql, values)
 
         return {
@@ -109,7 +134,11 @@ export class MysqlAccessor implements AccessorInterface {
     }
 
     protected async remove(_collection: string, params: Params): Promise<RemoveResult> {
+        const { collection, requestId } = params
+
         const { sql, values } = SqlBuilder.from(params).delete()
+        this.logger.debug(`[${requestId}] mysql remove {${collection}}: `, { sql, values })
+
         const [ret] = await this.conn.execute<OkPacket>(sql, values)
         return {
             deleted: ret.affectedRows
@@ -117,7 +146,11 @@ export class MysqlAccessor implements AccessorInterface {
     }
 
     protected async count(_collection: string, params: Params): Promise<CountResult> {
+        const { collection, requestId } = params
+
         const { sql, values } = SqlBuilder.from(params).count()
+
+        this.logger.debug(`[${requestId}] mysql count {${collection}}: `, { sql, values })
         const [ret] = await this.conn.execute<RowDataPacket[]>(sql, values)
 
         if (ret.length === 0) {

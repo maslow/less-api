@@ -2,7 +2,7 @@ import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, C
 import { Params, ActionType } from '../types'
 import { createPool, Pool, ConnectionOptions, ResultSetHeader, OkPacket, RowDataPacket } from 'mysql2/promise'
 import { SqlBuilder } from "./sql_builder"
-import { Entry } from ".."
+import { DefaultLogger, Entry } from ".."
 
 /**
  * Mysql Accessor
@@ -20,8 +20,21 @@ export class MysqlAccessor implements AccessorInterface {
         return this._context
     }
 
+    private _logger: DefaultLogger
+
     get logger() {
-        return this._context.getLogger()
+        if (this._logger) {
+            return this._logger
+        } else if (this._context) {
+            return this._context.getLogger()
+        } else {
+            this._logger = new DefaultLogger()
+            return this._logger
+        }
+    }
+
+    setLogger(logger: DefaultLogger) {
+        this._logger = logger
     }
 
     get conn(): Pool {
@@ -34,7 +47,7 @@ export class MysqlAccessor implements AccessorInterface {
         this.pool = createPool(options)
     }
 
-    async init(context: Entry) {
+    async init(context?: Entry) {
         this._context = context
         this.logger.info(`mysql accessor init`)
         return

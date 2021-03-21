@@ -1,6 +1,6 @@
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
 import { Params, ActionType } from '../types'
-import { Entry } from ".."
+import { DefaultLogger, Entry } from ".."
 
 
 declare const uniCloud: any
@@ -17,12 +17,24 @@ export class UniCloudAccessor implements AccessorInterface {
     get context() {
         return this._context
     }
+    private _logger: DefaultLogger
 
     get logger() {
-        return this._context.getLogger()
+        if (this._logger) {
+            return this._logger
+        } else if (this._context) {
+            return this._context.getLogger()
+        } else {
+            this._logger = new DefaultLogger()
+            return this._logger
+        }
     }
 
-    async init(context: Entry) {
+    setLogger(logger: DefaultLogger) {
+        this._logger = logger
+    }
+
+    async init(context?: Entry) {
         this.db = uniCloud.database()
         this._context = context
     }

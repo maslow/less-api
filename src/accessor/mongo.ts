@@ -2,6 +2,7 @@ import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, C
 import { Params, ActionType, Order, Direction } from './../types'
 import { MongoClient, ObjectID, MongoClientOptions, Db } from 'mongodb'
 import { Entry } from ".."
+import { DefaultLogger } from "../logger"
 
 export class MongoAccessor implements AccessorInterface {
 
@@ -15,8 +16,21 @@ export class MongoAccessor implements AccessorInterface {
         return this._context
     }
 
+    private _logger: DefaultLogger
+
     get logger() {
-        return this._context.getLogger()
+        if (this._logger) {
+            return this._logger
+        } else if (this._context) {
+            return this._context.getLogger()
+        } else {
+            this._logger = new DefaultLogger()
+            return this._logger
+        }
+    }
+
+    setLogger(logger: DefaultLogger) {
+        this._logger = logger
     }
 
     /**
@@ -28,7 +42,7 @@ export class MongoAccessor implements AccessorInterface {
         this.db = null
     }
 
-    async init(context: Entry) {
+    async init(context?: Entry) {
         this._context = context
         this.logger.info(`mongo accessor connecting...`)
         await this.conn.connect()

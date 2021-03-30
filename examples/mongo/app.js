@@ -1,13 +1,13 @@
 const express = require('express')
-const { Entry, MongoAccessor } = require('../../dist')
+const { Entry, MongoAccessor, Ruler } = require('../../dist')
 const { v4: uuidv4 } = require('uuid')
 const log4js = require('log4js')
 const rules = {
   categories: {
-    '.read': true,
-    '.update': true,
-    '.add': true,
-    '.remove': true
+    'read': true,
+    'update': true,
+    'add': true,
+    'remove': true
   }
 }
 
@@ -24,18 +24,23 @@ app.all('*', function (_req, res, next) {
   next()
 })
 
-// init the less-api Entry & Db Accessor
+// create a accessor
 const dbOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }
 const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', dbOptions)
-const entry = new Entry(accessor)
+accessor.init()
+
+// create a ruler
+const ruler = new Ruler(accessor)
+ruler.load(rules)
+
+// create a entry
+const entry = new Entry(accessor, ruler)
 const lessLogger = log4js.getLogger('less-api')
 lessLogger.level = 'debug'
 entry.setLogger(lessLogger)
-entry.init()
-entry.loadRules(rules)
 
 app.post('/entry', async (req, res) => {
   const requestId = uuidv4()

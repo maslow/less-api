@@ -1,5 +1,5 @@
 const express = require('express')
-const { Entry, MysqlAccessor } = require('../../dist')
+const { Entry, MysqlAccessor, Ruler } = require('../../dist')
 const rules = require('./rules.json')
 const { v4: uuidv4 } = require('uuid')
 const log4js = require('log4js')
@@ -25,7 +25,7 @@ function parseToken(token) {
   }
 }
 
-// init the less-api Entry & Db Accessor
+// create a accessor
 const accessor = new MysqlAccessor({
   database: 'testdb',
   user: "root",
@@ -34,13 +34,20 @@ const accessor = new MysqlAccessor({
   port: 3306
 })
 
-const entry = new Entry(accessor)
+// create a ruler
+const ruler = new Ruler(accessor)
+
+// ruler.setAccessor(accessor)
+ruler.load(rules)
+
+// create an entry
+const entry = new Entry(accessor, ruler)
 const lessLogger = log4js.getLogger('less-api')
 lessLogger.level = 'debug'
 entry.setLogger(lessLogger)
 
-entry.init()
-entry.loadRules(rules)
+// entry.init()
+// entry.loadRules(rules)
 
 app.post('/entry', async (req, res) => {
   const requestId = uuidv4()

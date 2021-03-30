@@ -109,25 +109,9 @@ export class Ruler implements RulerInterface {
     // 处理每张数据库表的访问规则
     for (let collection in rules) {
       this.add(collection, rules[collection])
-      // this.logger.info(`load collection rules: ${collection}...`)
-      // // 表权限，是一个对象， like { ".read": {...}, '.update': {...} }
-      // const permissions = rules[collection]
-
-      // tree[collection] = {} as CollectionRule
-
-      // // 用户配置的「权限名」列表, like ['.read', '.update' ...]
-      // const perm_types = Object.keys(permissions) as PermissionType[]
-
-      // // 处理每个权限
-      // for (let ptype of perm_types) {
-      //   // 权限对应的验证器配置, like { 'condition': true, 'data': {...} }
-      //   const permissionConfig = permissions[ptype]
-      //   tree[collection][ptype] = this.instantiateValidators(permissionConfig)
-      // }
     }
 
     this.logger.info(`all rules loaded`)
-
     return true
   }
 
@@ -158,21 +142,30 @@ export class Ruler implements RulerInterface {
     // 处理每种权限规则, like ['read', 'update' ...]
     const perm_types = Object.keys(rules) as PermissionType[]
     for (let ptype of perm_types) {
+      // skip non-permisstion-type item, like '$schema'
+      if (ptype as string === '$schema') {
+        continue
+      }
+
       // 权限对应的验证器配置, like { 'condition': true, 'data': {...} }
       const permissionConfig = rules[ptype]
-      collectionRule[ptype] = this.instantiateValidators(permissionConfig)
+      const permissionConfigArr = this.wrapRawPermissionRuleToArray(permissionConfig)
+
+      // add schema config if ADD or UPDATE
+      if ([PermissionType.ADD, PermissionType.UPDATE].includes(ptype)) {
+        permissionConfigArr.forEach(pmc => {
+          pmc['schema'] = rules['$schema']
+        })
+      }
+
+      // instantiate validators
+      collectionRule[ptype] = this.instantiateValidators(permissionConfigArr)
     }
 
-    // 单独处理 $schema
-    collectionRule.$schema = this.instantiateValidators({ data: rules['$schema'] })
     this.rules[collection] = collectionRule
   }
 
-  /**
-   * 实例化验证器
-   * @param permissionRules 权限规则
-   */
-  private instantiateValidators(permissionRules: any): PermissionRule[] {
+  private wrapRawPermissionRuleToArray(permissionRules: any): any[] {
     assert.notEqual(permissionRules, undefined, 'permissionRules is undefined')
 
     let rules = permissionRules
@@ -187,7 +180,14 @@ export class Ruler implements RulerInterface {
 
     // 权限规则不为数组时，转为数组
     if (!(rules instanceof Array)) rules = [rules]
+    return rules
+  }
 
+  /**
+   * 实例化验证器
+   * @param permissionRules 权限规则
+   */
+  private instantiateValidators(rules: any[]): PermissionRule[] {
     const result: PermissionRule[] = rules.map(raw_rule => {
       const prule: PermissionRule = {}
 
@@ -243,14 +243,16 @@ export class Ruler implements RulerInterface {
     const permName = this.getPermissionName(action.type)
     const permRules: PermissionRule[] = this.rules[collection][permName]
 
-    // 权限规则不存在
+    // if no permission rules
     if (!permRules) {
       const err: ValidateError = { type: 0, error: `${collection} ${actionType} don't has any rules` }
       errors.push(err)
       return { errors }
     }
 
-    // 遍历验证权限的每一条规则
+    this.logger.trace(`[${requestId}] ${actionType} -> ${collection} permission rules: `, permRules)
+
+    // loop for validating every permission rule
     let matched = null
     const context: HandlerContext = { ruler: this, params, injections }
 
@@ -275,8 +277,7 @@ export class Ruler implements RulerInterface {
       }
     }
 
-
-    // 没有匹配到任何规则，返回验证错误信息
+    // return error if no permission rule matched
     if (!matched) {
       this.logger.debug(`[${requestId}] validate rejected: ${actionType} -> ${collection} `)
       this.logger.trace(`[${requestId}] validate errors: `, errors)

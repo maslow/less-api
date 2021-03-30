@@ -1,6 +1,7 @@
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
 import { Params, ActionType } from '../types'
-import { DefaultLogger, Entry } from ".."
+import { DefaultLogger } from ".."
+import { LoggerInterface } from "../logger"
 
 
 declare const uniCloud: any
@@ -12,31 +13,20 @@ export class UniCloudAccessor implements AccessorInterface {
     /**
      * @see https://mongodb.github.io/node-mongodb-native/3.3/reference/connecting/connection-settings/
      */
-    constructor() { }
-    private _context: Entry
-    get context() {
-        return this._context
+    constructor() {
+        this.db = uniCloud.database()
     }
-    private _logger: DefaultLogger
+    private _logger: LoggerInterface
 
     get logger() {
-        if (this._logger) {
-            return this._logger
-        } else if (this._context) {
-            return this._context.getLogger()
-        } else {
+        if (!this._logger) {
             this._logger = new DefaultLogger()
-            return this._logger
         }
+        return this._logger
     }
 
-    setLogger(logger: DefaultLogger) {
+    setLogger(logger: LoggerInterface) {
         this._logger = logger
-    }
-
-    async init(context?: Entry) {
-        this.db = uniCloud.database()
-        this._context = context
     }
 
     close() {

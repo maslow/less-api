@@ -1,11 +1,20 @@
 
 import * as assert from 'assert'
-import { Entry } from './entry'
-import { Params, PermissionType, getAction } from './types'
-import { Handler, Processor, HandlerContext } from './processor'
-import * as BUILT_IN_VALIDATORS from './validators'
-import { AccessorInterface } from './accessor'
-import { DefaultLogger } from './logger'
+import { Entry } from '../entry'
+import { Params, getAction, ActionType } from '../types'
+import { Handler, Processor, HandlerContext } from '../processor'
+import * as BUILT_IN_VALIDATORS from '../validators'
+import { AccessorInterface } from '../accessor'
+import { DefaultLogger, LoggerInterface } from '../logger'
+import { PermissionRule, RulerInterface, ValidateError, ValidateResult } from './interface'
+
+export enum PermissionType {
+  READ = '.read',
+  UPDATE = '.update',
+  ADD = '.add',
+  REMOVE = '.remove',
+  COUNT = '.count'
+}
 
 // 数据库规则
 interface DbRulesTree {
@@ -17,31 +26,18 @@ type CollectionRules = {
   [permission in PermissionType]: PermissionRule[]
 }
 
-// 权限规则
-interface PermissionRule {
-  [name: string]: Processor
-}
-
-// 验证错误信息
-export interface ValidateError {
-  type: string | number,
-  error: string | object
-}
-
-// 验证结果
-export interface ValidateResult {
-  errors?: ValidateError[],
-  matched?: PermissionRule
-}
-
 // 验证器容器
 interface ValidatorMap {
   [name: string]: Handler
 }
 
-export class Ruler {
 
-  readonly context: Entry
+export class Ruler implements RulerInterface {
+
+  readonly version: 1
+  private _context: Entry
+  private _accessor: AccessorInterface
+  protected _logger: LoggerInterface
 
   /**
    * 验证器注册表
@@ -53,15 +49,11 @@ export class Ruler {
    */
   private rules: DbRulesTree
 
-  private get logger() {
-    if (!this.context) {
-      return (new DefaultLogger(0))
+  constructor(context?: Entry) {
+    if (context) {
+      this.logger.warn('context will be deprecated in future, use Ruler.accessor instead')
+      this._context = context
     }
-    return this.context.logger
-  }
-
-  constructor(context: Entry) {
-    this.context = context
     this.validators = {}
     this.rules = null
     this.init()
@@ -71,16 +63,35 @@ export class Ruler {
     this.loadBuiltins()
   }
 
-  get collections() {
+  public get collections() {
     if (!this.rules) return []
     return Object.keys(this.rules)
   }
 
-  get accessor(): AccessorInterface {
-    return this.context ? this.context.accessor : null
+  private get logger() {
+    if (!this._logger) {
+      this._logger = new DefaultLogger()
+    }
+    return this._logger
   }
 
-  load(rules: any) {
+  public setLogger(logger: LoggerInterface) {
+    this._logger = logger
+  }
+
+  public get accessor(): AccessorInterface {
+    if (this._accessor) {
+      return this._accessor
+    }
+    // keep this._context.accessor for compatiable reason, will be removed in next major version
+    return this._context ? this._context.accessor : null
+  }
+
+  public setAccessor(accessor: AccessorInterface) {
+    this._accessor = accessor
+  }
+
+  public load(rules: any) {
     this.logger.debug(`load rules: `, JSON.stringify(rules))
     assert.equal(typeof rules, 'object', "invalid 'rules'")
 
@@ -112,8 +123,8 @@ export class Ruler {
   }
 
   /**
-   * 实例化验证器
-   * @param permissionRules 权限规则
+   * instantiate validators
+   * @param permissionRules json object rule config
    */
   private instantiateValidators(permissionRules: any): PermissionRule[] {
     assert.notEqual(permissionRules, undefined, 'permissionRules is undefined')
@@ -157,11 +168,11 @@ export class Ruler {
   }
 
   /**
-   * 验证访问规则
+   * validate request params
    * @param params 
    * @param injections 
    */
-  async validate(params: Params, injections: object): Promise<ValidateResult> {
+  public async validate(params: Params, injections: object): Promise<ValidateResult> {
     const { collection, action: actionType, requestId } = params
     this.logger.debug(`[${requestId}] ruler validate with injections: `, injections)
 
@@ -175,7 +186,7 @@ export class Ruler {
       return { errors }
     }
 
-    // action 是否合法
+    // check action is(not) valid
     const action = getAction(actionType)
     if (!action) {
       const err: ValidateError = { type: 0, error: `action "${actionType}" invalid` }
@@ -183,11 +194,14 @@ export class Ruler {
       return { errors }
     }
 
-    const permName = action.permission
+    const permName = this.getPermissionName(action.type)
     const permRules: PermissionRule[] = this.rules[collection][permName]
+
 
     // 权限规则不存在
     if (!permRules) {
+      this.logger.trace({ permName, permRules })
+
       const err: ValidateError = { type: 0, error: `${collection} ${actionType} don't has any rules` }
       errors.push(err)
       return { errors }
@@ -238,7 +252,7 @@ export class Ruler {
    * @param name 
    * @param handler 
    */
-  register(name: string, handler: Handler) {
+  public register(name: string, handler: Handler) {
     assert.ok(name, `register error: name must not be empty`)
     assert.ok(handler instanceof Function, `${name} register error: 'handler' must be a callable function`)
 
@@ -255,6 +269,29 @@ export class Ruler {
     for (let name in BUILT_IN_VALIDATORS) {
       const handler = BUILT_IN_VALIDATORS[name] as Handler
       this.register(name, handler)
+    }
+  }
+
+  /**
+   * 获取指定 ActionType 对应的权限名
+   * @param action ActionType
+   * @returns 
+   */
+  private getPermissionName(action: ActionType): PermissionType {
+    switch (action) {
+      case ActionType.ADD:
+        return PermissionType.ADD
+      case ActionType.READ:
+        return PermissionType.READ
+      case ActionType.UPDATE:
+        return PermissionType.UPDATE
+      case ActionType.REMOVE:
+        return PermissionType.REMOVE
+      case ActionType.COUNT:
+        return PermissionType.COUNT
+
+      default:
+        throw new Error('getPermissionName() unknow action')
     }
   }
 }

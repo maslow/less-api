@@ -7,18 +7,8 @@ export enum ActionType {
   COUNT = 'database.countDocument'
 }
 
-export enum PermissionType {
-  READ = '.read',
-  UPDATE = '.update',
-  ADD = '.add',
-  REMOVE = '.remove',
-  COUNT = '.count'
-}
-
-
 export interface Action {
   readonly type: ActionType,
-  readonly permission: PermissionType,
   readonly fields: string[]
 }
 //  params types
@@ -71,11 +61,11 @@ const AddAcceptParams = ['data', 'multi']
 const RemoveAcceptParams = ['query', 'multi', 'joins']
 const CountAcceptParams = ['query', 'joins']
 
-const ReadAction: Action = { type: ActionType.READ, permission: PermissionType.READ, fields: ReadAcceptParams }
-const UpdateAction: Action = { type: ActionType.UPDATE, permission: PermissionType.UPDATE, fields: UpdateAcceptParams }
-const RemoveAction: Action = { type: ActionType.REMOVE, permission: PermissionType.REMOVE, fields: RemoveAcceptParams }
-const AddAction: Action = { type: ActionType.ADD, permission: PermissionType.ADD, fields: AddAcceptParams }
-const CountAction: Action = { type: ActionType.COUNT, permission: PermissionType.COUNT, fields: CountAcceptParams }
+const ReadAction: Action = { type: ActionType.READ, fields: ReadAcceptParams }
+const UpdateAction: Action = { type: ActionType.UPDATE, fields: UpdateAcceptParams }
+const RemoveAction: Action = { type: ActionType.REMOVE, fields: RemoveAcceptParams }
+const AddAction: Action = { type: ActionType.ADD, fields: AddAcceptParams }
+const CountAction: Action = { type: ActionType.COUNT, fields: CountAcceptParams }
 
 export function getAction(actionName: ActionType): Action | null {
 

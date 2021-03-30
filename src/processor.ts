@@ -1,13 +1,13 @@
 import * as assert from 'assert'
 import { Params } from './types'
-import { Ruler } from './ruler'
+import { RulerInterface } from './ruler/interface'
 
 export enum ProcessTypes {
     Validator = 'validator'
 }
 
 export interface HandlerContext {
-    ruler: Ruler,
+    ruler: RulerInterface,
     params: Params,
     injections: any
 }

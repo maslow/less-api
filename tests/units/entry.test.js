@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { Entry, Ruler, MongoAccessor } = require('../../dist')
+const { Entry, MongoAccessor } = require('../../dist')
 
 describe('class Entry', () => {
   const accessor = new MongoAccessor('test-db', 'test-url')
@@ -7,7 +7,6 @@ describe('class Entry', () => {
   it('constructor() ok', () => {
     const entry = new Entry(accessor)
 
-    assert.ok(entry.ruler instanceof Ruler)
     assert.ok(entry.accessor instanceof MongoAccessor)
     assert.equal(entry.ruler.accessor, entry.accessor)
   })

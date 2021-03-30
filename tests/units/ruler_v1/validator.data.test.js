@@ -1,5 +1,5 @@
 const assert = require('assert')
-const {  Ruler } = require('../../dist')
+const {  Ruler } = require('../../../dist/ruler/ruler_v1')
 
 describe('Date Validator - merge options', () => {
     const rules = {

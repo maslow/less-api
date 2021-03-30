@@ -1,6 +1,8 @@
 const assert = require('assert')
-const { Ruler, Processor } = require('../../dist')
-const buildins = require('../../dist/validators')
+const { Processor } = require('../../../dist')
+const {  Ruler } = require('../../../dist/ruler/ruler_v1')
+
+const buildins = require('../../../dist/validators')
 
 describe('class Ruler', () => {
 
@@ -81,6 +83,7 @@ describe('class Ruler validate() - condition', () => {
 
     const ruler = new Ruler()
     ruler.load(rules)
+
     const injections = {
         $admin: true
     }
@@ -91,7 +94,7 @@ describe('class Ruler validate() - condition', () => {
 
     it('read should be ok', async () => {
         params.action = 'database.queryDocument'
-        const { errors, matched} = await ruler.validate(params, injections)
+        const { errors, matched } = await ruler.validate(params, injections)
         assert.ok(matched)
         assert.ok(!errors)
     })

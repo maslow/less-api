@@ -1,35 +1,25 @@
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
 import { Params, ActionType, Order, Direction } from './../types'
 import { MongoClient, ObjectID, MongoClientOptions, Db } from 'mongodb'
-import { Entry } from ".."
-import { DefaultLogger } from "../logger"
+import { DefaultLogger, LoggerInterface } from "../logger"
 
 export class MongoAccessor implements AccessorInterface {
 
     readonly type: string = 'mongo'
     readonly db_name: string
     readonly conn: MongoClient
-    private _context: Entry
     db: Db
 
-    get context(): Entry {
-        return this._context
-    }
-
-    private _logger: DefaultLogger
+    private _logger: LoggerInterface
 
     get logger() {
-        if (this._logger) {
-            return this._logger
-        } else if (this._context) {
-            return this._context.getLogger()
-        } else {
+        if (!this._logger) {
             this._logger = new DefaultLogger()
-            return this._logger
         }
+        return this._logger
     }
 
-    setLogger(logger: DefaultLogger) {
+    setLogger(logger: LoggerInterface) {
         this._logger = logger
     }
 
@@ -42,8 +32,7 @@ export class MongoAccessor implements AccessorInterface {
         this.db = null
     }
 
-    async init(context?: Entry) {
-        this._context = context
+    async init() {
         this.logger.info(`mongo accessor connecting...`)
         await this.conn.connect()
         this.logger.info(`mongo accessor connected, db: ` + this.db_name)

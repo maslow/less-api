@@ -1,10 +1,10 @@
 const assert = require('assert')
-const {  Ruler } = require('../../../dist')
+const {  Ruler } = require('../../../dist/ruler/ruler_v2')
 
 describe('Date Validator - merge options', () => {
     const rules = {
         categories: {
-            "update": {
+            "add": {
                 condition: true,
                 data: { 
                     title: { required: true },
@@ -19,7 +19,7 @@ describe('Date Validator - merge options', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.updateDocument'
+        collection: 'categories', action: 'database.addDocument'
     }
 
     it('replace one while operator exists and merge == false should throw error', async () => {
@@ -53,7 +53,7 @@ describe('Date Validator - merge options', () => {
 describe('Data Validator - required', () => {
     const rules = {
         categories: {
-            "update": {
+            "add": {
                 condition: true,
                 data: { 
                     title: { required: true },
@@ -68,7 +68,7 @@ describe('Data Validator - required', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.updateDocument'
+        collection: 'categories', action: 'database.addDocument'
     }
 
 
@@ -106,7 +106,7 @@ describe('Data Validator - required', () => {
         assert.ok(!matched)
         assert.equal(errors.length, 1)
         assert.equal(errors[0].type, 'data')
-        assert.equal(errors[0].error, 'title is required')
+        assert.equal(errors[0].error, 'data is empty')
     })
 
     it('required == true should be rejected', async () => {
@@ -136,7 +136,7 @@ describe('Data Validator - required', () => {
 describe('Data Validator - length', () => {
     const rules = {
         categories: {
-            "update": {
+            "add": {
                 condition: true,
                 data: { 
                     title: { length: [3, 6], required: true},
@@ -150,7 +150,7 @@ describe('Data Validator - length', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.updateDocument'
+        collection: 'categories', action: 'database.addDocument'
     }
 
 
@@ -212,7 +212,7 @@ describe('Data Validator - length', () => {
 describe('Data Validator - default', () => {
     const rules = {
         categories: {
-            "update": {
+            "add": {
                 condition: true,
                 data: { 
                     title: { default: 'Default Title', required: true},
@@ -226,12 +226,13 @@ describe('Data Validator - default', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.updateDocument'
+        collection: 'categories', action: 'database.addDocument'
     }
 
 
     it('default should be applied both required equals to true and false', async () => {
         params.data = {
+            content: ''
         }
         const { matched, errors } = await ruler.validate(params, {})
         assert.ok(matched)
@@ -270,7 +271,7 @@ describe('Data Validator - default', () => {
 describe('Data Validator - in', () => {
     const rules = {
         categories: {
-            "update": {
+            "add": {
                 condition: true,
                 data: { 
                     title: { in: [true, false]},
@@ -284,16 +285,16 @@ describe('Data Validator - in', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.updateDocument'
+        collection: 'categories', action: 'database.addDocument'
     }
 
 
-    it('empty data should be ok', async () => {
+    it('empty data should be rejected', async () => {
         params.data = {
         }
         const { matched, errors } = await ruler.validate(params, {})
-        assert.ok(matched)
-        assert.ok(!errors)
+        assert.ok(!matched)
+        assert.ok(errors)
     })
 
     it('valid data should be ok ', async () => {
@@ -335,7 +336,7 @@ describe('Data Validator - in', () => {
 describe('Data Validator - number', () => {
     const rules = {
         categories: {
-            "update": {
+            "add": {
                 condition: true,
                 data: { 
                     total: { number: [0, 100] },
@@ -348,7 +349,7 @@ describe('Data Validator - number', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.updateDocument'
+        collection: 'categories', action: 'database.addDocument'
     }
 
 
@@ -401,7 +402,7 @@ describe('Data Validator - number', () => {
 describe('Data Validator - match', () => {
     const rules = {
         categories: {
-            "update": {
+            "add": {
                 condition: true,
                 data: { 
                     account: { match: "^\\d{6,10}$" },
@@ -414,7 +415,7 @@ describe('Data Validator - match', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.updateDocument'
+        collection: 'categories', action: 'database.addDocument'
     }
 
 
@@ -445,7 +446,7 @@ describe('Data Validator - match', () => {
 describe('Data validator - Flatten Data', () => {
     const rules = {
         categories: {
-            "update": {
+            "add": {
                 condition: true,
                 data: { 
                     title: { required: true },
@@ -462,7 +463,7 @@ describe('Data validator - Flatten Data', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.updateDocument'
+        collection: 'categories', action: 'database.addDocument'
     }
 
     it('flatten data should be ok', async () => {
@@ -489,7 +490,7 @@ describe('Data validator - Flatten Data', () => {
 describe('Data validator - Condition', () => {
     const rules = {
         categories: {
-            "update": {
+            "add": {
                 condition: true,
                 data: { 
                     author_id: "$userid == $value",
@@ -505,7 +506,7 @@ describe('Data validator - Condition', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.updateDocument'
+        collection: 'categories', action: 'database.addDocument'
     }
 
     it('data condition should be ok', async () => {

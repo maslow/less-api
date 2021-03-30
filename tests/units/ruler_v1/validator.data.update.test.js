@@ -1,10 +1,10 @@
 const assert = require('assert')
-const {  Ruler } = require('../../../dist/ruler/ruler_v1')
+const {  Ruler } = require('../../../dist')
 
 describe('Date Validator - merge options', () => {
     const rules = {
         categories: {
-            ".update": {
+            "update": {
                 condition: true,
                 data: { 
                     title: { required: true },
@@ -53,7 +53,7 @@ describe('Date Validator - merge options', () => {
 describe('Data Validator - required', () => {
     const rules = {
         categories: {
-            ".update": {
+            "update": {
                 condition: true,
                 data: { 
                     title: { required: true },
@@ -103,21 +103,21 @@ describe('Data Validator - required', () => {
         params.data = {
         }
         const { matched, errors } = await ruler.validate(params, {})
+        console.log(errors);
+        
         assert.ok(!matched)
         assert.equal(errors.length, 1)
         assert.equal(errors[0].type, 'data')
-        assert.equal(errors[0].error, 'title is required')
+        assert.equal(errors[0].error, 'data is empty')
     })
 
-    it('required == true should be rejected', async () => {
+    it('required == true should be ignored when update', async () => {
         params.data = {
             content: 'Content'
         }
         const { matched, errors } = await ruler.validate(params, {})
-        assert.ok(!matched)
-        assert.equal(errors.length, 1)
-        assert.equal(errors[0].type, 'data')
-        assert.equal(errors[0].error, 'title is required')
+        assert.ok(matched)
+        assert.ok(!errors)
     })
 
     it('required == false should be ok', async () => {
@@ -136,7 +136,7 @@ describe('Data Validator - required', () => {
 describe('Data Validator - length', () => {
     const rules = {
         categories: {
-            ".update": {
+            "update": {
                 condition: true,
                 data: { 
                     title: { length: [3, 6], required: true},
@@ -160,6 +160,7 @@ describe('Data Validator - length', () => {
         }
 
         const { matched, errors } = await ruler.validate(params, {})
+        console.log({matched, errors})
         assert.ok(matched)
         assert.ok(!errors)
     })
@@ -212,11 +213,12 @@ describe('Data Validator - length', () => {
 describe('Data Validator - default', () => {
     const rules = {
         categories: {
-            ".update": {
+            "update": {
                 condition: true,
                 data: { 
                     title: { default: 'Default Title', required: true},
-                    content: { default: 0 }
+                    content: { default: 0 },
+                    another: {}
                 }
             }
         }
@@ -230,15 +232,18 @@ describe('Data Validator - default', () => {
     }
 
 
-    it('default should be applied both required equals to true and false', async () => {
+    it('default should not be applied both required equals to true and false when update', async () => {
         params.data = {
+            another: ''
         }
         const { matched, errors } = await ruler.validate(params, {})
         assert.ok(matched)
         assert.ok(!errors)
 
-        assert.equal(params.data.title, 'Default Title')
-        assert.equal(params.data.content, 0)
+        // 更新时默认值应该失效，虽必植
+        assert.notStrictEqual(params.data.title, 'Default Title')
+        // 更新时默认值应该失效，不必填
+        assert.ok(!params.data.content)
     })
 
     it('given value should replace default value', async () => {
@@ -246,11 +251,12 @@ describe('Data Validator - default', () => {
             title: 'Custom Title'
         }
         const { matched, errors } = await ruler.validate(params, {})
+
         assert.ok(matched)
         assert.ok(!errors)
 
         assert.equal(params.data.title, 'Custom Title')
-        assert.equal(params.data.content, 0)
+        assert.ok(!params.data.content)
     })
 
     it('given value should replace default value both required == true and false', async () => {
@@ -270,7 +276,7 @@ describe('Data Validator - default', () => {
 describe('Data Validator - in', () => {
     const rules = {
         categories: {
-            ".update": {
+            "update": {
                 condition: true,
                 data: { 
                     title: { in: [true, false]},
@@ -288,12 +294,12 @@ describe('Data Validator - in', () => {
     }
 
 
-    it('empty data should be ok', async () => {
+    it('empty data should be rejected', async () => {
         params.data = {
         }
         const { matched, errors } = await ruler.validate(params, {})
-        assert.ok(matched)
-        assert.ok(!errors)
+        assert.ok(!matched)
+        assert.ok(errors)
     })
 
     it('valid data should be ok ', async () => {
@@ -335,7 +341,7 @@ describe('Data Validator - in', () => {
 describe('Data Validator - number', () => {
     const rules = {
         categories: {
-            ".update": {
+            "update": {
                 condition: true,
                 data: { 
                     total: { number: [0, 100] },
@@ -401,7 +407,7 @@ describe('Data Validator - number', () => {
 describe('Data Validator - match', () => {
     const rules = {
         categories: {
-            ".update": {
+            "update": {
                 condition: true,
                 data: { 
                     account: { match: "^\\d{6,10}$" },
@@ -441,55 +447,10 @@ describe('Data Validator - match', () => {
     })
 })
 
-
-describe('Data validator - Flatten Data', () => {
-    const rules = {
-        categories: {
-            ".update": {
-                condition: true,
-                data: { 
-                    title: { required: true },
-                    content: { required: true },
-                    author: { required: true },
-                    age: { number: [0, 100]},
-                    gender: { in: [0, 1], default: 1 }
-                }
-            }
-        }
-    }
-
-    const ruler = new Ruler()
-    ruler.load(rules)
-
-    let params = {
-        collection: 'categories', action: 'database.updateDocument'
-    }
-
-    it('flatten data should be ok', async () => {
-        params.merge = true
-        params.data = {
-            title: 'title',
-            $set: {
-                content: 'content',
-                author: 123
-            },
-            $inc: {
-                age: 1
-            }
-        }
-        
-        const { matched, errors } = await ruler.validate(params, {})
-        console.log({errors})
-        assert.ok(matched)
-        assert.ok(!errors)
-        assert.equal(params.data.gender, 1)
-    })
-})
-
 describe('Data validator - Condition', () => {
     const rules = {
         categories: {
-            ".update": {
+            "update": {
                 condition: true,
                 data: { 
                     author_id: "$userid == $value",

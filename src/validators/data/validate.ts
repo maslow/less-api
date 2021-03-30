@@ -2,7 +2,7 @@
 import * as $ from 'validator'
 import * as vm from 'vm'
 import { HandlerContext } from '../../processor'
-import { UPDATE_COMMANDS } from "../../types"
+import { ActionType, UPDATE_COMMANDS } from "../../types"
 
 
 const RULE_KEYS = [
@@ -23,15 +23,24 @@ export async function validateField(field: string, data: any, rules: any, contex
 
     const flatten = flattenData(data)
 
-    // if required == true
-    const isRequired = rules['required'] == true
-    if (flatten[field] === undefined || flatten[field] === null) {
-        // if default
-        if (rules['default'] !== undefined && rules['default'] !== null) {
-            flatten[field] = data[field] = rules['default']
-        } else {
-            return isRequired ? `${field} is required` : null
+    // 如果是增加操作，处理必填与默认值
+    if (context.params.action === ActionType.ADD) {
+        const isRequired = rules['required'] == true
+        // 如果此字段值为空
+        if (flatten[field] === undefined || flatten[field] === null) {
+            // 如果设置了默认值，则设置为默认值，跳过 required 检查
+            if (rules['default'] !== undefined && rules['default'] !== null) {
+                flatten[field] = data[field] = rules['default']
+            } else {
+                // 如果没有默认值，则进行 required 检查，此时确定值为空，所以不值 required 是否为真，都返回
+                return isRequired ? `${field} is required` : null
+            }
         }
+    }
+
+    // 如果是更新操作，并且此字段为空，则不进行以下“值验证”
+    if (context.params.action === ActionType.UPDATE && flatten[field] === undefined) {
+        return null
     }
 
     const rule_names = Object.keys(rules)

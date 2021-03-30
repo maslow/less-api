@@ -20,6 +20,14 @@
 
 ## 谁适合使用 less-api ？
 
+### 微信云开发用户
+
+    如果你喜欢微信云开发的极速开发体验，但又不想局限于微信平台，那么可以基于 less-api 搭建属于自己的云开发平台！
+    
+    具体可了解 `less-framework` 和 `less-admin` （基于 less-api 实现的云开发框架和管理端）。
+
+    自建云开发，可以获取极速的云开发体验，同时没有技术选型时迁移平台的烦恼顾虑。
+
 ### 个人开发者、初创创业团队
 
     无论你使用云开发还是自建服务器环境，在产品初期基于 `less-api` 可以极大减少服务端API的数量，
@@ -38,6 +46,7 @@
 
 - 用于快速开发 MVP，专注于客户端业务，极大程度减少服务端开发工作量
 - 用于云开发（BaaS）服务中，屏蔽云厂商的环境差异，亦方便由 BaaS 到自建 Server 的迁移
+- 自建属于自己的云开发环境，具体可了解 `less-framework`（基于 less-api 实现的云开发框架）
 
 ## 使用示例
 
@@ -49,40 +58,43 @@
 
 ```js
 const app = require('express')()
-const { Entry, MongoAccessor } = require('less-api')
+const { Entry, MongoAccessor, Ruler } = require('less-api')
+
 app.use(express.json())
 
 // design the access control rules
 const rules = {
     categories: {
-        ".read": true,
-        ".update": "$admin == true",
-        ".add": "$admin == true",
-        ".remove": "$admin == true"
+        "read": true,
+        "update": "$admin == true",
+        "add": "$admin == true",
+        "remove": "$admin == true"
     }
 }
 
-// init the less-api Entry & Db Accessor
-
-// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
+// create an accessor
 const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     poolSize: 10
 })
+accessor.init()
 
-const entry = new Entry(accessor)
-entry.init()
-entry.loadRules(rules)
+// create a ruler
+const ruler = new Ruler(accessor)
+ruler.load(rules)
+
+// create an entry
+const entry = new Entry(accessor, ruler)
 
 app.post('/entry', async (req, res) => {
-  const { admin, uid } = parseToken(req.headers['authorization'])
+  const { role, uid } = parseToken(req.headers['authorization'])
 
   // parse params
   const params = entry.parseParams(req.body)
 
   const injections = {
-    $admin: admin,
+    $role: role,
     $userid: uid
   }
 
@@ -151,16 +163,16 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 ```json
 {
     "categories": {
-        ".read": true,
-        ".update": "$admin === true",
-        ".add": "$admin === true",
-        ".remove": "$admin === true"
+        "read": true,
+        "update": "$admin === true",
+        "add": "$admin === true",
+        "remove": "$admin === true"
     },
     "articles": {
-        ".read": true,
-        ".update": "$admin === true",
-        ".add": "$admin === true",
-        ".remove": "$admin === true"
+        "read": true,
+        "update": "$admin === true",
+        "add": "$admin === true",
+        "remove": "$admin === true"
     }
 }
 ```
@@ -170,10 +182,10 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 ```json
 {
     "articles": {
-        ".read": true,
-        ".update": "$userid && $userid === query.createdBy",
-        ".add": "$userid && data.createdBy === $userid",
-        ".remove": "$userid === query.createBy || $admin === true"
+        "read": true,
+        "update": "$userid && $userid === query.createdBy",
+        "add": "$userid && data.createdBy === $userid",
+        "remove": "$userid === query.createBy || $admin === true"
     }
 }
 ```
@@ -183,15 +195,15 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 ```json
 {
     "articles": {
-        ".add": {
-            "condition": "$userid && data.createdBy === $userid",
-            "data": {
-                "title": {"length": [1, 64], "required": true},
-                "content": {"length": [1, 4096]},
-                "like": { "number": [0,], "default": 0}
-            }
+        "add": {
+            "condition": "$userid && data.createdBy === $userid"
         },
-        ".remove": "$userid === query.createBy || $admin === true"
+        "remove": "$userid === query.createBy || $admin === true",
+        "$schema": {
+            "title": {"length": [1, 64], "required": true},
+            "content": {"length": [1, 4096]},
+            "like": { "number": [0,], "default": 0}
+        }
     }
 }
 ```
@@ -203,22 +215,25 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 ```json
 {
     "messages": {
-        ".read": "$userid && ($userid === query.receiver || $userid === query.sender)",
-        ".update": {
+        "read": "$userid && ($userid === query.receiver || $userid === query.sender)",
+        "update": {
             "condition": "$userid && $userid === query.receiver",
             "data": {
-                "read": {"in": [true, false]}
+                "read": {"in": [true]}
             }
         },
-        ".add": {
+        "add": {
             "condition": "$userid && $userid === data.sender",
-            "data": {
-                "content": {"length": [1, 20480], "required": true},
-                "receiver": {"exists": "/users/id"},
-                "read": { "in": [false], "default": false }
+             "data": {
+                "read": {"in": [false]}
             }
         },
-        ".remove": false
+        "remove": false,
+        "$schema": {
+            "content": {"length": [1, 20480], "required": true},
+            "receiver": {"exists": "/users/id"},
+            "read": { "in": [true, false], "default": false }
+        }
     }
 }
 ```
@@ -317,12 +332,12 @@ docker run --name pgdb -e POSTGRESQL_PASSWORD=kissme -e POSTGRESQL_DATABASE=test
 npx mocha tests/**/*.test.js
 ```
 
-##  todo
+##  TODO
 
 - 实现服务端应用内数据操作事件，可订阅相应事件，触发更多自定义的业务逻辑，如表冗余统计字段，或中间统计表的更新
 - 基于 Mongo 的`change watch`, 实现客户端可订阅数据变更通知，服务端通过 websocket 向客户端实时推送数据变更
-- 提供 Flutter (Dart) SDK [完成]
+- 提供 Flutter (Dart) SDK (`less-client-dart`) [完成]
 - 支持 MySQL 等关系型数据库 [完成]
-- 支持 MySQL 联表查询 [完成]
-- 支持 MySQL 聚合
-- 支持 MySQL 事务
+- 支持 MySQL 联表查询(Join) [完成]
+- 支持 MongoDb 聚合
+- 支持 MongoDb 事务

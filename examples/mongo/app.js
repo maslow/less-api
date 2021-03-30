@@ -25,6 +25,7 @@ app.all('*', function (_req, res, next) {
 })
 
 // create a accessor
+// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
 const dbOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true

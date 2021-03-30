@@ -26,6 +26,7 @@ function parseToken(token) {
 }
 
 // create a accessor
+// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
 const accessor = new MysqlAccessor({
   database: 'testdb',
   user: "root",

@@ -1,6 +1,6 @@
 import { Handler } from '../../processor'
 import { validateField, flattenData } from './validate'
-import { isAllowedFields, execScript } from '../utils'
+import { isAllowedFields, execScript } from '../../utils/utils'
 import { UPDATE_COMMANDS } from '../..'
 
 

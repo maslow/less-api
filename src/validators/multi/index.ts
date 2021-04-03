@@ -1,6 +1,6 @@
 import { Handler } from '../../processor'
 import { ActionType } from "../../types"
-import { execScript } from '../utils'
+import { execScript } from '../../utils/utils'
 
 /**
  * 是否允许用户操作多条数据

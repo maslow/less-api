@@ -8,7 +8,7 @@ describe('Query validator - condition', () => {
                 query: { 
                     author_id: "$userid == $value",
                     createdBy: {
-                        condition: "$userid == $value"
+                        condition: "$userid == $v"
                     }
                 }
             }

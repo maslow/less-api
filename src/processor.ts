@@ -21,12 +21,12 @@ export class Processor {
     readonly name: string
     readonly type: ProcessTypes
     readonly config: any
-    constructor(name: string, handler: Handler, config: any, type: ProcessTypes = ProcessTypes.Validator){
+    constructor(name: string, handler: Handler, config: any, type: ProcessTypes = ProcessTypes.Validator) {
         assert.ok(handler instanceof Function, `${name}'s handler must be callable`)
 
         this.name = name
         this.handler = handler
-        
+
         this.type = type
         this.config = config
     }

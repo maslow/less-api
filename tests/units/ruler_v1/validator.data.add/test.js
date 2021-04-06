@@ -22,7 +22,7 @@ describe('Date Validator - merge options', () => {
         collection: 'categories', action: 'database.addDocument'
     }
 
-    it('replace one while operator exists and merge == false should throw error', async () => {
+    it('add one while operator exists should throw error', async () => {
         params.data = {
             title: 'test-title',
             $set: {
@@ -33,19 +33,6 @@ describe('Date Validator - merge options', () => {
         assert.ok(!matched)
         assert.ok(errors.length, 1)
         assert.equal(errors[0].type, 'data')
-        assert.equal(errors[0].error, 'data must not contain any operator while `merge` with false')
+        assert.equal(errors[0].error, 'data must not contain any operator')
     })
-
-    it('update one while operator NOT exists and merge == true should throw error', async () => {
-        params.data = {
-            title: 'test-title'
-        }
-        params.merge = true
-
-        const { matched, errors } = await ruler.validate(params, {})
-        assert.ok(!matched)
-        assert.ok(errors.length, 1)
-        assert.equal(errors[0].type, 'data')
-        assert.equal(errors[0].error, 'data must contain operator while `merge` with true')
-      })
 })

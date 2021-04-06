@@ -33,8 +33,8 @@ export class Constraint {
     ignoreConstraints: string[]
 
     constructor(context: HandlerContext, data: any, ignoreConstraints?: string[]) {
-        assert(this.context, 'context cannot be empty')
-        assert(this.data, 'data to be constrainted cannot be empty')
+        assert(context, 'context cannot be empty')
+        assert(data, 'data to be constrainted cannot be empty')
 
         this.context = context
         this.data = data

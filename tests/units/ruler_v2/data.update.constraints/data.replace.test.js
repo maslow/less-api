@@ -1,7 +1,7 @@
 const assert = require('assert')
 const {  Ruler } = require('../../../../dist')
 
-describe('Date Validator - merge options', () => {
+describe('Date Validator - merge options (replace & update)', () => {
     const rules = {
         categories: {
             "update": {
@@ -24,14 +24,15 @@ describe('Date Validator - merge options', () => {
 
     it('replace one while operator exists and merge == false should throw error', async () => {
         params.data = {
-            title: 'test-title',
             $set: {
+                title: 'test-title',
                 content: 'content'
             }
         }
         const { matched, errors } = await ruler.validate(params, {})
         assert.ok(!matched)
         assert.ok(errors.length, 1)
+        console.log(errors)
         assert.equal(errors[0].type, 'data')
         assert.equal(errors[0].error, 'data must not contain any operator')
     })

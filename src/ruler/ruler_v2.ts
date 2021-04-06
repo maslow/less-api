@@ -6,6 +6,7 @@ import * as BUILT_IN_VALIDATORS from '../validators'
 import { AccessorInterface } from '../accessor'
 import { DefaultLogger, LoggerInterface } from '../logger'
 import { PermissionRule, RulerInterface, ValidateError, ValidateResult } from './interface'
+import { PermissionType as PermissionTypeV1 } from './ruler_v1'
 
 /**
  * 访问规则结构： 
@@ -25,7 +26,13 @@ export enum PermissionType {
   ADD = 'add',
   REMOVE = 'remove',
   COUNT = 'count',
-  WATCH = 'watch'
+  WATCH = 'watch',
+  // // 以下是为了兼容老版本规则
+  // _READ = '.read',
+  // _UPDATE = '.update',
+  // _ADD = '.add',
+  // _REMOVE = '.remove',
+  // _COUNT = '.count',
 }
 
 // 数据库规则
@@ -136,12 +143,14 @@ export class Ruler implements RulerInterface {
   set(collection: string, rules: any) {
     this.logger.info(`set collection rules: ${collection}...`)
 
+    rules = this.convertPermissionConfig(rules)
+
     // 集合权限，是一个对象， like { "read": {...}, 'update': {...} }
     const collectionRule = {} as CollectionRule
 
     // 处理每种权限规则, like ['read', 'update' ...]
     const perm_types = Object.keys(rules) as PermissionType[]
-    for (let ptype of perm_types) {
+    for (const ptype of perm_types) {
       // skip non-permisstion-type item, like '$schema'
       if (ptype as string === '$schema') {
         continue
@@ -165,6 +174,50 @@ export class Ruler implements RulerInterface {
     this.rules[collection] = collectionRule
   }
 
+  /**
+   * 转换 v1 版本的权限名到 v2
+   * example:
+   * ".read" -> "read"
+   * ".update" -> ".update"
+   * ...
+   * @param rules 
+   * @returns 
+   */
+  private convertPermissionConfig(rules: any): any {
+    let newRules = {}
+    for (const key in rules) {
+      let type = key
+      switch (key) {
+        case PermissionTypeV1.READ:
+          type = PermissionType.READ
+          break
+        case PermissionTypeV1.UPDATE:
+          type = PermissionType.UPDATE
+          break
+        case PermissionTypeV1.ADD:
+          type = PermissionType.ADD
+          break
+        case PermissionTypeV1.COUNT:
+          type = PermissionType.COUNT
+          break
+        case PermissionTypeV1.REMOVE:
+          type = PermissionType.REMOVE
+          break
+      }
+      newRules[type] = rules[key]
+    }
+    return newRules
+  }
+
+  /**
+   * normalize：将输入规则格式转为内部统一形式，即对象数组
+   * 1. boolean -> [{ condition: "bool string"}] 
+   * 2. string -> [{ condition: "expression string" }]
+   * 3. object -> [ object ]
+   * 4. array -> array
+   * @param permissionRules 
+   * @returns 
+   */
   private wrapRawPermissionRuleToArray(permissionRules: any): any[] {
     assert.notEqual(permissionRules, undefined, 'permissionRules is undefined')
 

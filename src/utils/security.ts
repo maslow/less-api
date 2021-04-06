@@ -1,4 +1,4 @@
-import { LOGIC_COMMANDS, QUERY_COMMANDS } from "../types"
+import { LOGIC_COMMANDS, QUERY_COMMANDS, UPDATE_COMMANDS } from "../types"
 
 
 
@@ -9,7 +9,7 @@ export class SecurityUtil {
 
   // 检查字段名是否合法：data field, query field
   static checkField(name: string): boolean {
-    if (this.isOperator(name)) {
+    if (this.isQueryOrLogicOperator(name)) {
       return true
     }
 
@@ -65,8 +65,26 @@ export class SecurityUtil {
   static resolveFieldFromQuery(query: Object): string[] {
     const sets = []
     for (const key in query) {
-      if (this.isOperator(key)) {
+      if (this.isQueryOrLogicOperator(key)) {
         const ret = this.resolveFieldFromQuery(query[key])
+        sets.push(...ret)
+      } else {
+        sets.push(key)
+      }
+    }
+
+    return sets
+  }
+
+  /**
+   * 递归收集 data 中的字段列表，去除更新操作符
+   * @param data 
+   */
+  static resolveFieldFromData(data: Object): string[] {
+    const sets = []
+    for (const key in data) {
+      if (this.isUpdateOperator(key)) {
+        const ret = this.resolveFieldFromData(data[key])
         sets.push(...ret)
       } else {
         sets.push(key)
@@ -118,8 +136,71 @@ export class SecurityUtil {
     return keys.includes(key)
   }
 
-  // 是否为操作符
-  static isOperator(key: string): boolean {
+  // 是否为查询或逻辑操作符
+  static isQueryOrLogicOperator(key: string): boolean {
     return this.isLogicOperator(key) || this.isQueryOperator(key)
+  }
+
+  // 是否存在更新操作符
+  static hasUpdateOperator(data: any): boolean {
+    const OPTRS = Object.values(UPDATE_COMMANDS)
+
+    let has = false
+    const checkMixed = objs => {
+      if (typeof objs !== 'object') return
+
+      for (let key in objs) {
+        if (OPTRS.includes(key)) {
+          has = true
+        } else if (typeof objs[key] === 'object') {
+          checkMixed(objs[key])
+        }
+      }
+    }
+    checkMixed(data)
+
+    return has
+  }
+
+  // 是否为更新操作符
+  static isUpdateOperator(key: string): boolean {
+    const keys = Object.keys(UPDATE_COMMANDS)
+      .map(k => UPDATE_COMMANDS[k])
+    return keys.includes(key)
+  }
+
+
+  /**
+   * 将带操作符的 data 对象平铺
+   * 
+  data: {
+      title: '',
+      $set: {
+          content: '',
+          author: 123
+      },
+      $inc: {
+          age: 1
+      },
+      $push: {
+          grades: 99,
+      },
+  }
+  */
+  static flattenData(data: any = {}): object {
+    const result = {}
+
+    for (const key in data) {
+      if (!this.isUpdateOperator(key)) {
+        result[key] = data[key]
+        continue
+      }
+
+      const obj = data[key]
+      for (const k in obj) {
+        result[k] = obj[k]
+      }
+    }
+    return result
   }
 }

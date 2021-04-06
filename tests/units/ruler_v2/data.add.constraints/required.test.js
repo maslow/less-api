@@ -1,10 +1,10 @@
 const assert = require('assert')
-const {  Ruler } = require('../../../../dist')
+const {  Ruler } = require('../../../../dist/ruler/ruler_v2')
 
 describe('Data Validator - required', () => {
     const rules = {
         categories: {
-            "update": {
+            "add": {
                 condition: true,
                 data: { 
                     title: { required: true },
@@ -19,7 +19,7 @@ describe('Data Validator - required', () => {
     ruler.load(rules)
 
     let params = {
-        collection: 'categories', action: 'database.updateDocument'
+        collection: 'categories', action: 'database.addDocument'
     }
 
 
@@ -54,24 +54,21 @@ describe('Data Validator - required', () => {
         params.data = {
         }
         const { matched, errors } = await ruler.validate(params, {})
-        
         assert.ok(!matched)
         assert.equal(errors.length, 1)
         assert.equal(errors[0].type, 'data')
         assert.equal(errors[0].error, 'data is empty')
     })
 
-    it('required == true should be ignored when update', async () => {
+    it('required == true should be rejected', async () => {
         params.data = {
-            $set: {
-                content: 'Content'
-            }
+            content: 'Content'
         }
-        params.merge = true
         const { matched, errors } = await ruler.validate(params, {})
-
-        assert.ok(matched)
-        assert.ok(!errors)
+        assert.ok(!matched)
+        assert.equal(errors.length, 1)
+        assert.equal(errors[0].type, 'data')
+        assert.equal(errors[0].error, 'title is required')
     })
 
     it('required == false should be ok', async () => {
@@ -81,10 +78,7 @@ describe('Data Validator - required', () => {
             author: 'Author'
         }
 
-        params.merge = false
         const { matched, errors } = await ruler.validate(params, {})
-        console.log(errors);
-        
         assert.ok(matched)
         assert.ok(!errors)
     })

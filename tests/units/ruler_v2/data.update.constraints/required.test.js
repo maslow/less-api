@@ -1,6 +1,7 @@
 const assert = require('assert')
 const {  Ruler } = require('../../../../dist')
 
+
 describe('Data Validator - required', () => {
     const rules = {
         categories: {
@@ -61,19 +62,6 @@ describe('Data Validator - required', () => {
         assert.equal(errors[0].error, 'data is empty')
     })
 
-    it('required == true should be ignored when update', async () => {
-        params.data = {
-            $set: {
-                content: 'Content'
-            }
-        }
-        params.merge = true
-        const { matched, errors } = await ruler.validate(params, {})
-
-        assert.ok(matched)
-        assert.ok(!errors)
-    })
-
     it('required == false should be ok', async () => {
         params.data = {
             title: 'Title',
@@ -81,10 +69,7 @@ describe('Data Validator - required', () => {
             author: 'Author'
         }
 
-        params.merge = false
         const { matched, errors } = await ruler.validate(params, {})
-        console.log(errors);
-        
         assert.ok(matched)
         assert.ok(!errors)
     })

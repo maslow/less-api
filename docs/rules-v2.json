@@ -8,7 +8,7 @@
         "watch": true,
         "$schema": {
             "password": { "match": "^\\d{6,10}$"},
-            "author_id": "value == $userid",
+            "author_id": "$value == $userid",
             "type": {"required": true, "in": ["choice", "fill"]}, 
             "title": {"length": [4, 64], "required": true, "unique": true},
             "content": {"length": [4, 20480]},

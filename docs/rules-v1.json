@@ -16,7 +16,7 @@
                 "author_id": "value == $userid"
             },
             "query": {
-                "_id": "get(value).author_id === $userid"
+                "_id": "get($value).author_id === $userid"
             }
         },
         ".add": {

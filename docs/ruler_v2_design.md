@@ -6,7 +6,7 @@
 3. 将 data 验证器中对 add 和 update 操作的逻辑拆分
 4. data-update 不需要 required 和 default
 
-
+> 重点研究 query，核心安全控制在于 query；
 
 ### data.add 
 

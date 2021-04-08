@@ -341,3 +341,4 @@ npx mocha tests/**/*.test.js
 - 支持 MySQL 联表查询(Join) [完成]
 - 支持 MongoDb 聚合
 - 支持 MongoDb 事务
+- 补充 schema 验证器的测试用例

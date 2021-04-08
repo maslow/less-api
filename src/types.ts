@@ -4,7 +4,8 @@ export enum ActionType {
   UPDATE = 'database.updateDocument',
   ADD = 'database.addDocument',
   REMOVE = 'database.deleteDocument',
-  COUNT = 'database.countDocument'
+  COUNT = 'database.countDocument',
+  WATCH = 'database.countDocument'
 }
 
 export interface Action {
@@ -66,6 +67,7 @@ const UpdateAction: Action = { type: ActionType.UPDATE, fields: UpdateAcceptPara
 const RemoveAction: Action = { type: ActionType.REMOVE, fields: RemoveAcceptParams }
 const AddAction: Action = { type: ActionType.ADD, fields: AddAcceptParams }
 const CountAction: Action = { type: ActionType.COUNT, fields: CountAcceptParams }
+const WatchAction: Action = { type: ActionType.WATCH, fields: ReadAcceptParams }
 
 export function getAction(actionName: ActionType): Action | null {
 
@@ -85,6 +87,9 @@ export function getAction(actionName: ActionType): Action | null {
       break
     case ActionType.COUNT:
       action = CountAction
+      break
+    case ActionType.WATCH:
+      action = WatchAction
       break
     default:
       action = null

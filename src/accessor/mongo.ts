@@ -11,6 +11,9 @@ export class MongoAccessor implements AccessorInterface {
     readonly conn: MongoClient
     protected _event = new EventEmitter()
 
+    // ready promise 用于使用者等待 Accessor 连接就绪
+    ready: Promise<MongoClient>
+
     db: Db
 
     private _logger: LoggerInterface
@@ -33,6 +36,8 @@ export class MongoAccessor implements AccessorInterface {
         this.db_name = db
         this.conn = new MongoClient(url, options || {})
         this.db = null
+        // 初始化为空 Promise，永远不被 resolved
+        this.ready = new Promise(() => { /* nop */ })
     }
 
     emit(event: string | symbol, ...args: any[]): boolean {
@@ -57,10 +62,15 @@ export class MongoAccessor implements AccessorInterface {
 
     async init() {
         this.logger.info(`mongo accessor connecting...`)
-        await this.conn.connect()
-        this.logger.info(`mongo accessor connected, db: ` + this.db_name)
-        this.db = this.conn.db(this.db_name)
-        return
+        this.ready = this.conn
+            .connect()
+            .then(ret => {
+                this.logger.info(`mongo accessor connected, db: ` + this.db_name)
+                this.db = this.conn.db(this.db_name)
+                return ret
+            })
+
+        return await this.ready
     }
 
     async close() {

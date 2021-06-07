@@ -1,4 +1,6 @@
-
+/**
+ * 此文件为v1版本的 Ruler，支持老规则语法，保留此类是为兼容使用老版本的项目。
+ */
 import * as assert from 'assert'
 import { Entry } from '../entry'
 import { Params, getAction, ActionType } from '../types'

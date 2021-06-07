@@ -16,7 +16,7 @@ export class Entry {
     if (!ruler) {
       this.logger.warn(`
        You have passed a empty ruler to Entry.constructor() which will be depracated in the future.
-       Please give a instant of Ruler explicitly, otherwise entry will use an old Ruler automatically (RulerV1)
+       Please give an instant of Ruler explicitly, otherwise entry will use an old Ruler automatically (RulerV1)
       `)
     }
     this._ruler = ruler || new RulerV1(this)

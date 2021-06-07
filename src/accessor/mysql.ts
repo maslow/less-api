@@ -4,6 +4,7 @@ import { createPool, Pool, ConnectionOptions, ResultSetHeader, OkPacket, RowData
 import { SqlBuilder } from "./sql_builder"
 import { DefaultLogger } from ".."
 import { LoggerInterface } from "../logger"
+import { EventEmitter } from "events"
 
 /**
  * Mysql Accessor
@@ -16,6 +17,7 @@ export class MysqlAccessor implements AccessorInterface {
     readonly options: ConnectionOptions
     readonly pool: Pool
     private _logger: LoggerInterface
+    readonly _event = new EventEmitter()
 
     get logger() {
         if (!this._logger) {
@@ -37,6 +39,26 @@ export class MysqlAccessor implements AccessorInterface {
         this.options = options
         this.pool = createPool(options)
         this.logger.info(`mysql accessor init`)
+    }
+
+    emit(event: string | symbol, ...args: any[]): boolean {
+        return this._event.emit(event, ...args)
+    }
+
+    once(event: string | symbol, listener: (...args: any[]) => void): void {
+        this.once(event, listener)
+    }
+
+    removeAllListeners(event?: string | symbol): void {
+        this._event.removeAllListeners(event)
+    }
+
+    on(event: string | symbol, listener: (...args: any[]) => void): void {
+        this._event.on(event, listener)
+    }
+
+    off(event: string | symbol, listener: (...args: any[]) => void): void {
+        this._event.off(event, listener)
     }
 
     async close() {

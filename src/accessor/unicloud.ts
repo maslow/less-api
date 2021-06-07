@@ -16,6 +16,21 @@ export class UniCloudAccessor implements AccessorInterface {
     constructor() {
         this.db = uniCloud.database()
     }
+    on(_event: string | symbol, _listener: (...args: any[]) => void): void {
+        throw new Error("Method not implemented.")
+    }
+    off(_event: string | symbol, _listener: (...args: any[]) => void): void {
+        throw new Error("Method not implemented.")
+    }
+    emit(_event: string | symbol, ..._args: any[]): boolean {
+        throw new Error("Method not implemented.")
+    }
+    once(_event: string | symbol, _listener: (...args: any[]) => void): void {
+        throw new Error("Method not implemented.")
+    }
+    removeAllListeners(_event?: string | symbol): void {
+        throw new Error("Method not implemented.")
+    }
     private _logger: LoggerInterface
 
     get logger() {

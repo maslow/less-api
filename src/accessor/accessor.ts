@@ -29,4 +29,9 @@ export interface AccessorInterface {
     execute(params: Params): Promise<ReadResult | UpdateResult | AddResult | RemoveResult | CountResult>
     get(collection: string, query: any): Promise<any>
     close(): void
+    on(event: string | symbol, listener: (...args: any[]) => void): void
+    off(event: string | symbol, listener: (...args: any[]) => void): void
+    emit(event: string | symbol, ...args: any[]): boolean
+    once(event: string | symbol, listener: (...args: any[]) => void): void
+    removeAllListeners(event?: string | symbol): void
 }

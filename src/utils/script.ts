@@ -44,7 +44,7 @@ export async function executeScript(code: string, objects: any, context: Handler
     // 构造 get() 函数
     function GetFunc(target: string, value: any) {
       for (let el of prepared) {
-        const [t, v] = el.query
+        const [v, t] = el.query
         if (t === target && v === value)
           return el.result
       }
@@ -67,7 +67,7 @@ export async function executeScript(code: string, objects: any, context: Handler
 * @param defaultField 
 * @returns 
 */
-function parseQueryURI(target: string): { collection?: string, field?: string } {
+export function parseQueryURI(target: string): { collection?: string, field?: string } {
   if (!target) {
     return {}
   }
@@ -96,13 +96,13 @@ async function doGetQuery(collection: string, field: string, value: any, accesso
 
 function getQueries(code: string, injections: any): [string, any][] {
   const wrapper = `
-    let arr = []
+    const __arr = []
     function get(...params){
-        collection.push(params)
+        __arr.push(params)
         return {}
     }
     ${code};
-    (arr);
+    (__arr);
   `
   const script = new vm.Script(wrapper)
   const queries = script.runInNewContext(injections)

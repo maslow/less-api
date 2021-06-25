@@ -2,7 +2,7 @@
 import { assert } from 'console'
 import * as $ from 'validator'
 import { HandlerContext } from '../processor'
-import { executeScript } from './script'
+import { executeScript, parseQueryURI } from './script'
 
 export enum ConstraintTypes {
     REQUIRED = 'required',
@@ -243,14 +243,11 @@ export class Constraint {
             return `config error: ${fieldKey}#exists must be a string`
         }
 
-        const arr = constraintOption.split('/')
-        if (arr.length !== 2) {
-            return `config error: invalid config of ${fieldKey}#exists`
-        }
+        const { collection, field } = parseQueryURI(constraintOption)
         const accessor = this.context.ruler.accessor
-        const [collName, key] = arr
-        const ret = await accessor.get(collName, { [key]: value })
-        if (!ret) return `${fieldKey} not exists`
+
+        const ret = await accessor.get(collection, { [field]: value })
+        if (!ret) return `${fieldKey} not exists in ${collection}`
     }
 
     private async performNotExists(constraintOption: string, fieldKey: string, value: any) {
@@ -258,15 +255,11 @@ export class Constraint {
             return `config error: ${fieldKey}#notExists must be a string`
         }
 
-        const arr = constraintOption.split('/')
-        if (arr.length !== 2) {
-            return `config error: invalid config of ${fieldKey}#notExists`
-        }
-
+        const { collection, field } = parseQueryURI(constraintOption)
         const accessor = this.context.ruler.accessor
-        const [collName, key] = arr
-        const ret = await accessor.get(collName, { [key]: value })
-        if (ret) return `${fieldKey} already exists`
+
+        const ret = await accessor.get(collection, { [field]: value })
+        if (ret) return `${fieldKey} already exists in ${collection}`
     }
 
     private async performUnique(_constraintOption: string, fieldKey: string, value: any) {

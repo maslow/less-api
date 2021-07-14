@@ -103,9 +103,16 @@ export const UPDATE_COMMANDS = {
   INC: '$inc',
   MUL: '$mul',
   PUSH: '$push',
+  PULL: '$pull',
+  PULL_ALL: '$pullAll',
   POP: '$pop',
-  SHIFT: '$pop',
-  UNSHIFT: '$push'
+  SHIFT: '$shift',
+  UNSHIFT: '$unshift',
+  BIT: '$bit',
+  ADD_TO_SET: '$addToSet',
+  RENAME: '$rename',
+  MAX: '$max',
+  MIN: '$min'
 }
 
 export const LOGIC_COMMANDS = {
@@ -124,8 +131,16 @@ export const QUERY_COMMANDS = {
   LTE: '$lte',
   IN: '$in',
   NIN: '$nin',
-  // GEO_NEAR: '$geoNear',
-  // GEO_WITHIN: '$geoWithin',
-  // GEO_INTERSECTS: '$geoIntersects'
+  ALL: '$all',
+  EXISTS: '$exists',
+  SIZE: '$size',
+  MOD: '$mod',
+  ELE_MATCH: '$elemMatch',
+  GEO_NEAR: '$geoNear',
+  GEO_WITHIN: '$geoWithin',
+  GEO_INTERSECTS: '$geoIntersects',
   LIKE: '$like', // only for SQL query
+  EXPR: '$expr',
+  TEXT: '$text',
+  SEARCH: '$search'
 }

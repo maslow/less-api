@@ -9,7 +9,6 @@ import { EventEmitter } from "events"
 /**
  * Mysql Accessor
  */
-
 export class MysqlAccessor implements AccessorInterface {
 
     readonly type: string = 'mysql'

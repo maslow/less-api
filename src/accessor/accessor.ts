@@ -2,6 +2,9 @@ import { Params } from "../types"
 
 export interface ReadResult {
     list: object[]
+    total?: number
+    limit?: number
+    offset?: number
 }
 
 export interface UpdateResult {

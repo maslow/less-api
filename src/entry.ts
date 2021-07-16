@@ -62,7 +62,7 @@ export class Entry {
    * @deprecated Entry.init() will be deprecated in future, you should call accessor.init() directly instead
    */
   async init() {
-    this.logger.warn('Entry.init() will be deprecated in future, you should call accessor.init() directly instead')
+    this.logger.warn('@deprecated： Entry.init() will be deprecated in future, you should call accessor.init() directly instead')
     if (this._accessor.type === 'mongo') {
       await (this._accessor as any).init()
     }

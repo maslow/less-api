@@ -4,14 +4,48 @@ import { MongoClient, ObjectID, MongoClientOptions, Db } from 'mongodb'
 import { DefaultLogger, LoggerInterface } from "../logger"
 import { EventEmitter } from "events"
 
+/**
+ * Mongodb Accessor 负责执行 mongodb 数据操作
+ * 
+ * 连接参数同 mongodb javascript driver，参考以下链接：
+ * @see https://mongodb.github.io/node-mongodb-native/3.3/reference/connecting/connection-settings/
+ * 
+ * 实例化本对象后，须调用 `init()` 待数据库连接成功，方可执行数据操作。
+ * ```js
+ *  const accessor = new MongoAccessor('dbname', 'mongodb://localhost:27017', {
+ *      useNewUrlParser: true,
+ *      useUnifiedTopology: true
+ *  })
+ * 
+ *  accessor.init()
+ * ```
+ * 
+ * 可通过 `ready` 属性等待数据库连接就绪，该属性为 `Promise` 对象：
+ * ```js
+ *  accessor.ready.then(() => { 
+ *      // 连接就绪，可进行数据操作
+ *  })
+ * ```
+ */
 export class MongoAccessor implements AccessorInterface {
 
     readonly type: string = 'mongo'
+
+    /**
+     * 数据库名
+     */
     readonly db_name: string
     readonly conn: MongoClient
     protected _event = new EventEmitter()
 
-    // ready promise 用于使用者等待 Accessor 连接就绪
+    /**
+     * `ready` 属性可用于等待数据库连接就绪，该属性为 `Promise` 对象：
+     * ```js
+     *  accessor.ready.then(() => { 
+     *      // 连接就绪，可进行数据操作
+     *  })
+     * ```
+     */
     ready: Promise<MongoClient>
 
     db: Db
@@ -60,6 +94,10 @@ export class MongoAccessor implements AccessorInterface {
         this._event.off(event, listener)
     }
 
+    /**
+     * 初始化实例: 执行数据库连接
+     * @returns Promise<MongoClient>
+     */
     async init() {
         this.logger.info(`mongo accessor connecting...`)
         this.ready = this.conn
@@ -73,11 +111,19 @@ export class MongoAccessor implements AccessorInterface {
         return await this.ready
     }
 
+    /**
+     * 关闭连接
+     */
     async close() {
         await this.conn.close()
         this.logger.info('mongo connection closed')
     }
 
+    /**
+     * 执行数据请求
+     * @param params 数据请求参数
+     * @returns 
+     */
     async execute(params: Params): Promise<ReadResult | UpdateResult | AddResult | RemoveResult | CountResult | never> {
         // 优化 requestId 为空时日志显示
         params.requestId = params.requestId ?? 'internal'
@@ -127,6 +173,9 @@ export class MongoAccessor implements AccessorInterface {
         throw error
     }
 
+    /**
+     * 查询单个文档，主要用于 `访问规则` 中的数据查询
+     */
     async get(collection: string, query: any): Promise<any> {
         if (query && query._id) {
             query._id = new ObjectID(query._id)
@@ -144,6 +193,12 @@ export class MongoAccessor implements AccessorInterface {
         this.emit('result', { params, result })
     }
 
+    /**
+     * 执行查询文档操作
+     * @param collection 集合名
+     * @param params 请求参数
+     * @returns 查询结果
+     */
     protected async read(collection: string, params: Params): Promise<ReadResult> {
         const { requestId } = params
         const coll = this.db.collection(collection)
@@ -151,24 +206,33 @@ export class MongoAccessor implements AccessorInterface {
         let { query, order, offset, limit, projection } = params
         query = query || {}
         let options: any = {
-            limit: 100
+            limit: 100,
+            skip: 0
         }
         if (order) options.sort = this.processOrder(order)
         if (offset) options.skip = offset
         if (projection) options.projection = projection
 
         if (limit) {
-            options.limit = limit > 100 ? 100 : limit
+            options.limit = limit
         }
 
         this.logger.debug(`[${requestId}] mongo before read {${collection}}: `, { query, options })
         const data = await coll.find(query, options).toArray()
         this.logger.debug(`[${requestId}] mongo end of read {${collection}}: `, { query, options, dataLength: data.length })
 
-        this.emitResult(params, data)
-        return { list: data }
+        const total = await coll.estimatedDocumentCount(query, {})
+
+        this.emitResult(params, { data, total })
+        return { list: data, total, limit: options.limit, offset: options.skip }
     }
 
+    /**
+     * 执行更新文档操作
+     * @param collection 集合名
+     * @param params 请求参数
+     * @returns 执行结果
+     */
     protected async update(collection: string, params: Params): Promise<UpdateResult> {
         const { requestId } = params
         const coll = this.db.collection(collection)
@@ -195,6 +259,8 @@ export class MongoAccessor implements AccessorInterface {
         }
 
         let result: any
+
+        // multi 表示更新一条或多条
         if (!multi) {
             this.logger.debug(`[${requestId}] mongo before update (updateOne) {${collection}}: `, { query, data, options, merge, multi })
             result = await coll.updateOne(query, data, options)
@@ -215,6 +281,12 @@ export class MongoAccessor implements AccessorInterface {
         return ret
     }
 
+    /**
+     * 执行添加文档操作
+     * @param collection 集合名
+     * @param params 请求参数
+     * @returns 执行结果
+     */
     protected async add(collection: string, params: Params): Promise<AddResult> {
         const { requestId } = params
         const coll = this.db.collection(collection)
@@ -223,6 +295,8 @@ export class MongoAccessor implements AccessorInterface {
         let result: any
 
         this.logger.debug(`[${requestId}] mongo before add {${collection}}: `, { data, multi })
+
+        // multi 表示单条或多条添加
         if (!multi) {
             result = await coll.insertOne(data)
         } else {
@@ -239,6 +313,12 @@ export class MongoAccessor implements AccessorInterface {
         return ret
     }
 
+    /**
+     * 执行删除文档操作
+     * @param collection 集合名
+     * @param params 请求参数
+     * @returns 执行结果
+     */
     protected async remove(collection: string, params: Params): Promise<RemoveResult> {
         const { requestId } = params
         const coll = this.db.collection(collection)
@@ -247,6 +327,8 @@ export class MongoAccessor implements AccessorInterface {
         let result: any
 
         this.logger.debug(`[${requestId}] mongo before remove {${collection}}: `, { query, multi })
+
+        // multi 表示单条或多条删除
         if (!multi) {
             result = await coll.deleteOne(query)
         } else {
@@ -262,6 +344,12 @@ export class MongoAccessor implements AccessorInterface {
         return ret
     }
 
+    /**
+     * 执行文档计数操作
+     * @param collection 集合名
+     * @param params 请求参数
+     * @returns 执行结果
+     */
     protected async count(collection: string, params: Params): Promise<CountResult> {
         const { requestId } = params
         const coll = this.db.collection(collection)
@@ -279,6 +367,11 @@ export class MongoAccessor implements AccessorInterface {
         }
     }
 
+    /**
+     * 将 Order 结构转换为 Mongo 语法
+     * @param order 
+     * @returns 
+     */
     protected processOrder(order: Order[]) {
         if (!(order instanceof Array))
             return undefined

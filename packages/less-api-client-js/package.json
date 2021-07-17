@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Maslow/less-api-client-js.git"
+    "url": "git+https://github.com/Maslow/less-api.git"
   },
   "keywords": [
     "less-api",
@@ -23,9 +23,9 @@
   "author": "maslow (wangfugen@126.com)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Maslow/less-api-client-js/issues"
+    "url": "https://github.com/Maslow/less-api/issues"
   },
-  "homepage": "https://github.com/Maslow/less-api-client-js#readme",
+  "homepage": "https://github.com/Maslow/less-api#readme",
   "dependencies": {
     "axios": "^0.21.1",
     "less-api-database": "0.3.11"

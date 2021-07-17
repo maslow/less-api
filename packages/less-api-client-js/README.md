@@ -1,4 +1,3 @@
-![](https://github.com/Maslow/less-api-client-js/workflows/release/badge.svg)
 
 ### 介绍
 

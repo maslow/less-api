@@ -1,8 +1,6 @@
 const express = require('express')
-const { Entry, MysqlAccessor, Ruler } = require('../../packages/core/dist/')
+const { Entry, MysqlAccessor } = require('less-api')
 const rules = require('./rules.json')
-const { v4: uuidv4 } = require('uuid')
-const log4js = require('log4js')
 
 const app = new express()
 app.use(express.json())
@@ -25,38 +23,26 @@ function parseToken(token) {
   }
 }
 
-// create a accessor
-// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
+// init the less-api Entry & Db Accessor
 const accessor = new MysqlAccessor({
   database: 'testdb',
-  user: "root",
-  password: "kissme",
-  host: "localhost",
+  user: 'root',
+  password: 'kissme',
+  host: 'localhost',
   port: 3306
 })
 
-// create a ruler
-const ruler = new Ruler(accessor)
-
-// ruler.setAccessor(accessor)
-ruler.load(rules)
-
-// create an entry
-const entry = new Entry(accessor, ruler)
-const lessLogger = log4js.getLogger('less-api')
-lessLogger.level = 'debug'
-entry.setLogger(lessLogger)
-
-// entry.init()
-// entry.loadRules(rules)
+const entry = new Entry(accessor)
+entry.init()
+entry.loadRules(rules)
 
 app.post('/entry', async (req, res) => {
-  const requestId = uuidv4()
   const { role, userId } = parseToken(req.headers['authorization'])
 
   // parse params
-  const params = entry.parseParams({ ...req.body, requestId })
-
+  const params = entry.parseParams(req.body)
+  console.log(req.body)
+  console.log(params)
   const injections = {
     $role: role,
     $userid: userId
@@ -67,8 +53,7 @@ app.post('/entry', async (req, res) => {
   if (result.errors) {
     return res.send({
       code: 1,
-      error: result.errors,
-      requestId
+      error: result.errors
     })
   }
 
@@ -77,16 +62,14 @@ app.post('/entry', async (req, res) => {
     const data = await entry.execute(params)
     return res.send({
       code: 0,
-      data,
-      requestId
+      data
     })
   } catch (error) {
     return res.send({
       code: 2,
-      error: error.toString(),
-      requestId
+      error: error.toString()
     })
   }
 })
 
-app.listen(8080, () => console.log('listening on 8080'))
+app.listen(8088, () => console.log('listening on 8088'))

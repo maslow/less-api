@@ -1,5 +1,5 @@
 const express = require('express')
-const { Entry, MongoAccessor, Ruler } = require('../../dist')
+const { Entry, MongoAccessor, Ruler } = require('../../packages/core/dist/')
 const { v4: uuidv4 } = require('uuid')
 const log4js = require('log4js')
 const rules = {

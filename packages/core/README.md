@@ -66,9 +66,9 @@ app.use(express.json())
 const rules = {
     categories: {
         "read": true,
-        "update": "$role == 'admin'",
-        "add": "$role == 'admin'",
-        "remove": "$role == 'admin'"
+        "update": "$admin == true",
+        "add": "$admin == true",
+        "remove": "$admin == true"
     }
 }
 
@@ -95,8 +95,7 @@ app.post('/entry', async (req, res) => {
 
   const injections = {
     $role: role,
-    $userid: uid,
-    // add other variables or functions
+    $userid: uid
   }
 
   // validate query
@@ -165,15 +164,15 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 {
     "categories": {
         "read": true,
-        "update": "$role == 'admin'",
-        "add": "$role == 'admin'",
-        "remove": "$role == 'admin'"
+        "update": "$admin === true",
+        "add": "$admin === true",
+        "remove": "$admin === true"
     },
     "articles": {
         "read": true,
-        "update": "$role == 'admin'",
-        "add": "$role == 'admin'",
-        "remove": "$role == 'admin'"
+        "update": "$admin === true",
+        "add": "$admin === true",
+        "remove": "$admin === true"
     }
 }
 ```
@@ -186,7 +185,7 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
         "read": true,
         "update": "$userid && $userid === query.createdBy",
         "add": "$userid && data.createdBy === $userid",
-        "remove": "$userid === query.createBy || $role == 'admin'"
+        "remove": "$userid === query.createBy || $admin === true"
     }
 }
 ```
@@ -199,7 +198,7 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
         "add": {
             "condition": "$userid && data.createdBy === $userid"
         },
-        "remove": "$userid === query.createBy || $role == 'admin'",
+        "remove": "$userid === query.createBy || $admin === true",
         "$schema": {
             "title": {"length": [1, 64], "required": true},
             "content": {"length": [1, 4096]},

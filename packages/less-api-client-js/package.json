@@ -1,6 +1,6 @@
 {
   "name": "less-api-client",
-  "version": "0.8.8",
+  "version": "1.5.0",
   "description": "",
   "main": "dist/commonjs/index.js",
   "module": "dist/esm/index.js",
@@ -28,7 +28,7 @@
   "homepage": "https://github.com/Maslow/less-api#readme",
   "dependencies": {
     "axios": "^0.21.1",
-    "less-api-database": "^0.3.13"
+    "less-api-database": "^1.5.0"
   },
   "devDependencies": {
     "clean-webpack-plugin": "^3.0.0",
@@ -38,7 +38,7 @@
     "eslint-plugin-typescript": "^0.14.0",
     "express": "^4.17.1",
     "html-webpack-plugin": "^4.3.0",
-    "less-api": "^1.4.9",
+    "less-api": "^1.5.0",
     "mocha": "^7.1.1",
     "mongodb": "^3.6.3",
     "ts-loader": "^7.0.5",

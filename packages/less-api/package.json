@@ -35,10 +35,7 @@
     "@types/mongodb": "^3.3.8",
     "@types/node": "^12.12.5",
     "@types/validator": "^10.11.3",
-    "express": "^4.17.1",
-    "log4js": "^6.3.0",
-    "mocha": "^7.1.1",
-    "typescript": "^3.6.4",
-    "uuid": "^8.3.2"
+    "mocha": "^9.0.2",
+    "typescript": "^3.6.4"
   }
 }

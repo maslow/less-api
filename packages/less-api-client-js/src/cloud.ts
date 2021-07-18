@@ -86,7 +86,7 @@ class Cloud {
   /**
    * 调用云函数
    */
-  async invokeFunctin(functionName: string, data: any, debug = false) {
+  async invokeFunction(functionName: string, data: any, debug = false) {
     const url = this.funcBaseUrl + `/invoke/${functionName}?debug=${debug}`
     const res = await this
       ._request

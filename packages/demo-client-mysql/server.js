@@ -1,8 +1,7 @@
 const express = require('express')
-const { Entry, MysqlAccessor, Ruler } = require('../../packages/core/dist/')
+const { Entry, MysqlAccessor, Ruler } = require('../less-api/dist')
 const rules = require('./rules.json')
 const { v4: uuidv4 } = require('uuid')
-const log4js = require('log4js')
 
 const app = new express()
 app.use(express.json())
@@ -18,12 +17,6 @@ app.all('*', function (_req, res, next) {
   next()
 })
 
-function parseToken(token) {
-  return {
-    role: 'admin',
-    userId: 123
-  }
-}
 
 // create a accessor
 // @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
@@ -43,12 +36,7 @@ ruler.load(rules)
 
 // create an entry
 const entry = new Entry(accessor, ruler)
-const lessLogger = log4js.getLogger('less-api')
-lessLogger.level = 'debug'
-entry.setLogger(lessLogger)
 
-// entry.init()
-// entry.loadRules(rules)
 
 app.post('/entry', async (req, res) => {
   const requestId = uuidv4()
@@ -90,3 +78,12 @@ app.post('/entry', async (req, res) => {
 })
 
 app.listen(8080, () => console.log('listening on 8080'))
+
+
+
+function parseToken(token) {
+  return {
+    role: 'admin',
+    userId: 123
+  }
+}

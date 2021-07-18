@@ -1,5 +1,13 @@
 
-## 运行本例
+### 启动客户端
+
+```sh
+npm intall
+npm install -g @vue/cli
+
+vue serve index.vue
+```
+
 
 ### 运行服务端
 
@@ -14,5 +22,5 @@ docker run --name mysqltest -e MYSQL_ROOT_PASSWORD=kissme -e MYSQL_DATABASE=test
 3. 启动 less-api server
 
 ```sh
-node ./app.js
+node ./server.js
 ```

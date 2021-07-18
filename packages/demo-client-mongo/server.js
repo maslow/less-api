@@ -1,7 +1,7 @@
 const express = require('express')
-const { Entry, MongoAccessor, Ruler } = require('../../packages/core/dist/')
+const { Entry, MongoAccessor, Ruler } = require('../less-api/dist')
 const { v4: uuidv4 } = require('uuid')
-const log4js = require('log4js')
+
 const rules = {
   categories: {
     'read': true,
@@ -39,9 +39,6 @@ ruler.load(rules)
 
 // create a entry
 const entry = new Entry(accessor, ruler)
-const lessLogger = log4js.getLogger('less-api')
-lessLogger.level = 'debug'
-entry.setLogger(lessLogger)
 
 app.post('/entry', async (req, res) => {
   const requestId = uuidv4()

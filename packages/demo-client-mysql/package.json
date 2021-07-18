@@ -1,0 +1,16 @@
+{
+  "name": "demo-client-mysql",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "less-api-client": "^0.8.8",
+    "express": "^4.17.1",
+    "log4js": "^6.3.0",
+    "uuid": "^8.3.2"
+  },
+  "scripts": {},
+  "author": "",
+  "license": "ISC"
+}

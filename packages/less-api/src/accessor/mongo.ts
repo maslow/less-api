@@ -1,5 +1,5 @@
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
-import { Params, ActionType, Order, Direction } from './../types'
+import { Params, ActionType, Order, Direction } from '../types'
 import { MongoClient, ObjectID, MongoClientOptions, Db } from 'mongodb'
 import { DefaultLogger, LoggerInterface } from "../logger"
 import { EventEmitter } from "events"

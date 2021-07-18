@@ -1,5 +1,14 @@
 
-## 运行本例
+### 启动客户端
+
+```sh
+npm intall
+npm install -g @vue/cli
+
+vue serve index.vue
+vue serve both.vue
+```
+
 
 ### 运行服务端
 
@@ -12,5 +21,5 @@
 2. 启动 less-api server
 
 ```sh
-node ./app.js
+node ./server.js
 ```

@@ -8,7 +8,7 @@
   "scripts": {
     "build": "lerna run build",
     "test": "lerna run test",
-    "copy-readme": "npx copy-cli ./README.md ./packages/core",
+    "copy-readme": "npx copy-cli ./README.md ./packages/less-api",
     "prepublish": "npm run build && npm run test && yarn copy-readme"
   },
   "devDependencies": {

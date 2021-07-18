@@ -120,8 +120,6 @@ app.listen(8080, () => console.log('listening on 8080'))
 
 ### 客户端使用
 
-详细请移步 [Less API Javascript Client SDK](https://github.com/Maslow/less-api-client-js.git)
-
 ```sh
     npm install less-api-client
 ```
@@ -154,7 +152,7 @@ const updated = await db.collection('articles').doc('the-doc-id').update({
 })
 ```
 
-更多使用参考[客户端使用文档](https://github.com/Maslow/less-api-client-js/blob/master/README.md)
+更多使用参考[客户端使用文档](./packages/less-api-client-js/README.md)
 
 ### 数据访问安全规则示例
 

@@ -18,7 +18,7 @@
     "noUnusedParameters": true,
     "outDir": "dist/esm",
     "pretty": true,
-    "removeComments": true,
+    "removeComments": false,
     "stripInternal": true,
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,

@@ -53,11 +53,16 @@ export interface CloudOptions {
   /**
    * 用户自定义请求类，默认此项为空，实际请求类由 `environment` 决定。
    * 如果使用了自定义请求类，则会忽略 `environment` 的值；
-   * 自定义请求类需要 实现 `RequestInterface` 接口。
+   * 自定义请求类需要 实现 `RequestInterface` 接口，一般建议直接继承 `class Request`，重写父类部分方法即可。
    * 
    * ```js
-   * {
-   *  requestClass: (options) => new MyRequest(options)
+   * import { Request } from 'less-api-client'
+   * class MyRequest extends Request {
+   *  async request(url, data) {
+   *    const res = await super.request(data)
+   *    // do your own logics
+        return res
+   *  }
    * }
    * ```
    */

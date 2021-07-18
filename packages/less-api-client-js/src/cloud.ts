@@ -68,6 +68,7 @@ class Cloud {
       requestClass: config?.requestClass
     }
 
+
     const reqClass = this.requestClass
     this._request = new reqClass(this.config)
   }
@@ -85,10 +86,11 @@ class Cloud {
   /**
    * 调用云函数
    */
-  async invokeFunctin(functionName: string, data: any) {
+  async invokeFunctin(functionName: string, data: any, debug = false) {
+    const url = this.funcBaseUrl + `/invoke/${functionName}?debug=${debug}`
     const res = await this
       ._request
-      .request(this.funcBaseUrl + `/invoke/${functionName}`, data)
+      .request(url, data)
 
     return res.data
   }

@@ -32,7 +32,7 @@ export class UniRequest extends Request {
     const options = {
       url,
       header,
-      method: _options.method ?? 'POST',
+      method: _options?.method ?? 'POST',
       data,
       dataType: 'json'
     }
@@ -42,7 +42,7 @@ export class UniRequest extends Request {
     if (err) {
       throw err
     }
-    return res.data
+    return res
   }
 
   /**

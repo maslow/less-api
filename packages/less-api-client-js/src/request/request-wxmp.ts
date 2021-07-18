@@ -34,7 +34,7 @@ export class WxmpRequest extends Request {
     const options = {
       url,
       header,
-      method: _options.method ?? 'POST',
+      method: _options?.method ?? 'POST',
       data,
       dataType: 'json'
     }
@@ -43,7 +43,7 @@ export class WxmpRequest extends Request {
       wx.request({
         ...options,
         success(res: any) {
-          resolve(res.data)
+          resolve(res)
         },
         fail(err: any) {
           reject(err)
@@ -57,8 +57,8 @@ export class WxmpRequest extends Request {
    * @param {UploadFileOption} option 
    */
    async upload(option: UploadFileOption): Promise<any> {
-    if(this.options.environment !== EnvironmentType.UNI_APP) {
-      throw new Error('environment type must be uniapp')
+    if(this.options.environment !== EnvironmentType.WX_MP) {
+      throw new Error('environment type must be wxmp')
     }
     
     if(!option.files?.length) {

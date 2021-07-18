@@ -98,11 +98,11 @@ export class Request implements RequestInterface {
    */
   protected getHeaders(token: string, headers?: Object) {
     headers = headers ?? { 'Content-Type': 'application/json' }
-    const combined = Object.assign({
-      'Authorization': `Bearer ${token}`
-    }, headers ?? {})
+    if(token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
 
     const optionHeader = this.options?.headers || {}
-    return Object.assign(combined, optionHeader)
+    return Object.assign(headers, optionHeader)
   }
 }

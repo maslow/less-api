@@ -133,3 +133,32 @@ export interface UploadFile {
   uri?: string;
 }
 
+/**
+ * 云函数调用返回的结构
+ */
+export interface FunctionInvokeResult<T = any> {
+  /**
+   * 
+   */
+  requestId?: string
+
+  /**
+   * 云函数返回的数据结果
+   */
+  data?: T
+
+  /**
+   * 函数执行耗时，只在调试模式调用才会返回
+   */
+  time_usage?: number
+
+  /**
+   * 函数执行日志，只在调试模式调用才会返回
+   */
+  logs?: any[]
+
+  /**
+   * 调用出错时返回错误
+   */
+  error?: string
+}

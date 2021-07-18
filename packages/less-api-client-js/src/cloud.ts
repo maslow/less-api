@@ -3,7 +3,7 @@ import { Db } from 'less-api-database'
 import { Request } from './request/request'
 import { UniRequest } from './request/request-uni'
 import { WxmpRequest } from './request/request-wxmp'
-import { CloudOptions, EnvironmentType, RequestInterface, UploadFile } from './types'
+import { CloudOptions, EnvironmentType, FunctionInvokeResult, RequestInterface, UploadFile } from './types'
 
 
 /**
@@ -86,8 +86,11 @@ class Cloud {
   /**
    * 调用云函数
    */
-  async invokeFunction(functionName: string, data: any, debug = false) {
-    const url = this.funcBaseUrl + `/invoke/${functionName}?debug=${debug}`
+  async invokeFunction<T = any>(functionName: string, data: any, debug = false): Promise<FunctionInvokeResult<T>>{
+    let url = this.funcBaseUrl + `/invoke/${functionName}`
+    if(debug) {
+      url = url + `?debug=true`
+    }
     const res = await this
       ._request
       .request(url, data)

@@ -1,11 +1,18 @@
 const express = require('express')
-const { Entry, MysqlAccessor, Ruler } = require('../less-api/dist')
-const rules = require('./rules.json')
+const { Entry, MongoAccessor, Ruler } = require('less-api')
 const { v4: uuidv4 } = require('uuid')
+
+const rules = {
+  categories: {
+    'read': true,
+    'update': true,
+    'add': true,
+    'remove': true
+  }
+}
 
 const app = new express()
 app.use(express.json())
-
 
 // request pre-process, include uid parse and cross-domain set
 app.all('*', function (_req, res, next) {
@@ -17,31 +24,26 @@ app.all('*', function (_req, res, next) {
   next()
 })
 
-
 // create a accessor
 // @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
-const accessor = new MysqlAccessor({
-  database: 'testdb',
-  user: "root",
-  password: "kissme",
-  host: "localhost",
-  port: 3306
-})
+const dbOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}
+const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', dbOptions)
+accessor.init()
 
 // create a ruler
 const ruler = new Ruler(accessor)
-
-// ruler.setAccessor(accessor)
 ruler.load(rules)
 
-// create an entry
+// create a entry
 const entry = new Entry(accessor, ruler)
-
 
 app.post('/entry', async (req, res) => {
   const requestId = uuidv4()
   const { role, userId } = parseToken(req.headers['authorization'])
-
+  
   // parse params
   const params = entry.parseParams({ ...req.body, requestId })
 
@@ -55,33 +57,23 @@ app.post('/entry', async (req, res) => {
   if (result.errors) {
     return res.send({
       code: 1,
-      error: result.errors,
-      requestId
+      error: result.errors
     })
   }
 
   // execute query
-  try {
-    const data = await entry.execute(params)
-    return res.send({
-      code: 0,
-      data,
-      requestId
-    })
-  } catch (error) {
-    return res.send({
-      code: 2,
-      error: error.toString(),
-      requestId
-    })
-  }
+  const data = await entry.execute(params)
+  return res.send({
+    code: 0,
+    data
+  })
 })
 
-app.listen(8080, () => console.log('listening on 8080'))
+app.listen(8081, () => console.log('listening on 8081'))
 
 
-
-function parseToken(token) {
+/* eslint-disable no-unused-vars */
+function parseToken(_token) {
   return {
     role: 'admin',
     userId: 123

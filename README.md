@@ -332,11 +332,7 @@ npx mocha tests/**/*.test.js
 
 ##  TODO
 
-- 实现服务端应用内数据操作事件，可订阅相应事件，触发更多自定义的业务逻辑，如表冗余统计字段，或中间统计表的更新
 - 基于 Mongo 的`change watch`, 实现客户端可订阅数据变更通知，服务端通过 websocket 向客户端实时推送数据变更
-- 提供 Flutter (Dart) SDK (`less-client-dart`) [完成]
-- 支持 MySQL 等关系型数据库 [完成]
-- 支持 MySQL 联表查询(Join) [完成]
-- 支持 MongoDb 聚合
-- 支持 MongoDb 事务
 - 补充 schema 验证器的测试用例
+- 更新 Mongodb node driver 到 v4.0.1 版本
+- 去除 MongoAccessor 查询请求中评估 count 的调用

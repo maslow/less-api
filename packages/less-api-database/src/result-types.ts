@@ -8,8 +8,8 @@ export interface GetRes<T> {
   ok: boolean
 }
 
-export interface GetOneRes {
-  data: any
+export interface GetOneRes<T> {
+  data: T
   requestId: string
   ok: boolean
 }
@@ -35,6 +35,6 @@ export interface CountRes {
 }
 
 export interface ErrorRes {
-  code: string | number,
-  error: string
+  code?: string | number,
+  error?: string
 }

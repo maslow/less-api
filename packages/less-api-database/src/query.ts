@@ -479,10 +479,10 @@ export class Query {
    * @param options 
    * @returns 
    */
-  public async getOne(options?: { nested?: boolean }): Promise<GetOneRes & ErrorRes> {
-    const res = await this.get(options)
+  public async getOne<T = any>(options?: { nested?: boolean }): Promise<GetOneRes<T> & ErrorRes> {
+    const res = await this.get<T>(options)
     if (res.code) {
-      return res
+      return res as any
     }
 
     if (!res.data.length) {

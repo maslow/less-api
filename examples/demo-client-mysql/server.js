@@ -1,5 +1,5 @@
 const express = require('express')
-const { Entry, MysqlAccessor, Ruler } = require('less-api')
+const { Proxy, MysqlAccessor, Policy } = require('less-api')
 const rules = require('./rules.json')
 const { v4: uuidv4 } = require('uuid')
 
@@ -19,7 +19,6 @@ app.all('*', function (_req, res, next) {
 
 
 // create a accessor
-// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
 const accessor = new MysqlAccessor({
   database: 'testdb',
   user: "root",
@@ -28,14 +27,14 @@ const accessor = new MysqlAccessor({
   port: 3306
 })
 
-// create a ruler
-const ruler = new Ruler(accessor)
+// create a policy
+const policy = new Policy(accessor)
 
 // ruler.setAccessor(accessor)
-ruler.load(rules)
+policy.load(rules)
 
-// create an entry
-const entry = new Entry(accessor, ruler)
+// create an proxy
+const proxy = new Proxy(accessor, policy)
 
 
 app.post('/entry', async (req, res) => {
@@ -43,7 +42,7 @@ app.post('/entry', async (req, res) => {
   const { role, userId } = parseToken(req.headers['authorization'])
 
   // parse params
-  const params = entry.parseParams({ ...req.body, requestId })
+  const params = proxy.parseParams({ ...req.body, requestId })
 
   const injections = {
     $role: role,
@@ -51,7 +50,7 @@ app.post('/entry', async (req, res) => {
   }
 
   // validate query
-  const result = await entry.validate(params, injections)
+  const result = await proxy.validate(params, injections)
   if (result.errors) {
     return res.send({
       code: 1,
@@ -62,7 +61,7 @@ app.post('/entry', async (req, res) => {
 
   // execute query
   try {
-    const data = await entry.execute(params)
+    const data = await proxy.execute(params)
     return res.send({
       code: 0,
       data,

@@ -21,7 +21,7 @@ const cloud = new Cloud({
   getAccessToken: () => null,
 })
 
-const db = cloud.database() // sql
+const db = cloud.database() 
 
 export default {
   data() {

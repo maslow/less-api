@@ -1,5 +1,5 @@
 const express = require('express')
-const { Entry, MongoAccessor, Ruler } = require('less-api')
+const { Proxy, MongoAccessor, Policy } = require('less-api')
 const { v4: uuidv4 } = require('uuid')
 
 const rules = {
@@ -25,27 +25,23 @@ app.all('*', function (_req, res, next) {
 })
 
 // create a accessor
-// @see https://mongodb.github.io/node-mongodb-native/3.3/reference/ecmascriptnext/connecting/
-const dbOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}
-const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', dbOptions)
+
+const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', { directConnection: true})
 accessor.init()
 
-// create a ruler
-const ruler = new Ruler(accessor)
-ruler.load(rules)
+// create a policy
+const policy = new Policy(accessor)
+policy.load(rules)
 
-// create a entry
-const entry = new Entry(accessor, ruler)
+// create a proxy
+const proxy = new Proxy(accessor, policy)
 
 app.post('/entry', async (req, res) => {
   const requestId = uuidv4()
   const { role, userId } = parseToken(req.headers['authorization'])
   
   // parse params
-  const params = entry.parseParams({ ...req.body, requestId })
+  const params = proxy.parseParams({ ...req.body, requestId })
 
   const injections = {
     $role: role,
@@ -53,7 +49,7 @@ app.post('/entry', async (req, res) => {
   }
 
   // validate query
-  const result = await entry.validate(params, injections)
+  const result = await proxy.validate(params, injections)
   if (result.errors) {
     return res.send({
       code: 1,
@@ -62,7 +58,7 @@ app.post('/entry', async (req, res) => {
   }
 
   // execute query
-  const data = await entry.execute(params)
+  const data = await proxy.execute(params)
   return res.send({
     code: 0,
     data

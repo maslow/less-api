@@ -17,7 +17,7 @@ describe('Database add', function () {
     let coll = null
 
     before(async () => {
-        await entry.init()
+        await accessor.init()
 
         // insert data
         coll = accessor.db.collection(COLL_NAME)
@@ -34,7 +34,6 @@ describe('Database add', function () {
         }
         const r = await entry.execute(params)
         assert.ok(r._id)
-        assert.equal(r.insertedCount, 1)
 
         const inserted = await coll.find().toArray()
         assert.ok(inserted instanceof Array)
@@ -89,8 +88,8 @@ describe('Database add', function () {
         
         try{
             await entry.execute(params)
-        }catch(err){
-            assert.ok(err.toString().indexOf('doc parameter must be an object') > 0)
+        } catch (err) {
+            assert.ok(err.toString().indexOf("BSON field 'insert.documents.0' is the wrong type 'array', expected type 'object'") > 0)
         }
     })
 

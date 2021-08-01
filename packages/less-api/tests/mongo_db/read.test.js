@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { Entry, MongoAccessor, ActionType } = require('../../dist')
+const { Entry, MongoAccessor, ActionType, Policy } = require('../../dist')
 
 const { dbconfig } = require('./_db')
 
@@ -13,11 +13,11 @@ describe('Database read', function () {
   this.timeout(10000)
 
   const accessor = new MongoAccessor(dbconfig.dbName, dbconfig.url, dbconfig.connSettings)
-  let entry = new Entry(accessor)
+  let entry = new Entry(accessor, new Policy)
   let coll = null
 
   before(async () => {
-    await entry.init()
+    await accessor.init()
 
     // insert data
     coll = accessor.db.collection('test_read')

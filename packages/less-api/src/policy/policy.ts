@@ -5,7 +5,7 @@ import { Handler, Processor, HandlerContext } from '../processor'
 import * as BUILT_IN_VALIDATORS from '../validators'
 import { AccessorInterface } from '../accessor'
 import { DefaultLogger, LoggerInterface } from '../logger'
-import { PermissionRule, RulerInterface, ValidateError, ValidateResult } from './interface'
+import { PermissionRule, PolicyInterface, ValidateError, ValidateResult } from './interface'
 import { PermissionType as PermissionTypeV1 } from './ruler_v1'
 
 /**
@@ -57,7 +57,7 @@ export interface ValidatorMap {
   [name: string]: Handler
 }
 
-export class Ruler implements RulerInterface {
+export class Policy implements PolicyInterface {
 
   readonly version = 2
   protected _accessor: AccessorInterface

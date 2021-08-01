@@ -45,7 +45,6 @@
 >最初 `less-api` 就是出于以下场景而设计的：
 
 - 用于快速开发 MVP，专注于客户端业务，极大程度减少服务端开发工作量
-- 用于云开发（BaaS）服务中，屏蔽云厂商的环境差异，亦方便由 BaaS 到自建 Server 的迁移
 - 自建属于自己的云开发环境，具体可了解 `less-framework`（基于 less-api 实现的云开发框架）
 
 ## 使用示例
@@ -58,11 +57,11 @@
 
 ```js
 const app = require('express')()
-const { Entry, MongoAccessor, Ruler } = require('less-api')
+const { Proxy, MongoAccessor, Policy } = require('less-api')
 
 app.use(express.json())
 
-// design the access control rules
+// design the access control policy rules
 const rules = {
     categories: {
         "read": true,
@@ -73,25 +72,21 @@ const rules = {
 }
 
 // create an accessor
-const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    poolSize: 10
-})
+const accessor = new MongoAccessor('mydb', 'mongodb://localhost:27017', { directConnection: true })
 accessor.init()
 
-// create a ruler
-const ruler = new Ruler(accessor)
-ruler.load(rules)
+// create a policy
+const policy = new Policy(accessor)
+policy.load(rules)
 
-// create an entry
-const entry = new Entry(accessor, ruler)
+// create an proxy
+const proxy = new Proxy(accessor, policy)
 
 app.post('/entry', async (req, res) => {
   const { role, uid } = parseToken(req.headers['authorization'])
 
   // parse params
-  const params = entry.parseParams(req.body)
+  const params = proxy.parseParams(req.body)
 
   const injections = {
     $role: role,
@@ -99,7 +94,7 @@ app.post('/entry', async (req, res) => {
   }
 
   // validate query
-  const result = await entry.validate(params, injections)
+  const result = await proxy.validate(params, injections)
   if (result.errors) {
     return res.send({
       code: 1,
@@ -108,7 +103,7 @@ app.post('/entry', async (req, res) => {
   }
 
   // execute query
-  const data = await entry.execute(params)
+  const data = await proxy.execute(params)
   return res.send({
     code: 0,
     data

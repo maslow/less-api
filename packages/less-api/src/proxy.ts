@@ -1,21 +1,21 @@
 import { Handler } from './processor'
-import { Ruler as RulerV1 } from './ruler/ruler_v1'
+import { Ruler as RulerV1 } from './policy/ruler_v1'
 import { AccessorInterface } from './accessor/accessor'
 import { Params, ActionType, getAction } from "./types"
 import assert = require('assert')
 import { DefaultLogger, LoggerInterface } from './logger'
-import { RulerInterface } from './ruler'
+import { PolicyInterface } from './policy'
 
-export class Entry {
+export class Proxy {
 
   private _accessor: AccessorInterface
-  private _ruler: RulerInterface
+  private _ruler: PolicyInterface
   private _logger: LoggerInterface
 
-  constructor(accessor: AccessorInterface, ruler: RulerInterface) {
+  constructor(accessor: AccessorInterface, ruler: PolicyInterface) {
     if (!ruler) {
       this.logger.warn(`
-       You have passed a empty ruler to Entry.constructor() which will be depracated in the future.
+       You have passed a empty ruler to Entry.constructor() which will be deprecated in the future.
        Please give an instant of Ruler explicitly, otherwise entry will use an old Ruler automatically (RulerV1)
       `)
     }
@@ -45,7 +45,7 @@ export class Entry {
     await this.init()
   }
 
-  get ruler(): RulerInterface {
+  get ruler(): PolicyInterface {
     return this._ruler
   }
 
@@ -53,7 +53,7 @@ export class Entry {
    * set ruler
    * @param ruler 
    */
-  async setRuler(ruler: RulerInterface) {
+  async setRuler(ruler: PolicyInterface) {
     this.logger.info(`change entry's ruler`)
     this._ruler = ruler
   }
@@ -124,7 +124,7 @@ export class Entry {
   parseParams(reqParams: any): Params {
     const { action, requestId } = reqParams
     this.logger.info(`[${requestId}] params parsing`)
-    const result = Entry.parse(action, reqParams)
+    const result = Proxy.parse(action, reqParams)
     this.logger.debug(`[${requestId}] params parsed: `, JSON.stringify(result))
     return result
   }
@@ -152,3 +152,9 @@ export class Entry {
     return params
   }
 }
+
+
+/**
+ * Proxy 的别名，为了兼容老版本命名
+ */
+export class Entry extends Proxy {}

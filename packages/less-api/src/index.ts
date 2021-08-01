@@ -1,6 +1,6 @@
 
-export * from './entry'
-export * from './ruler'
+export * from './proxy'
+export * from './policy'
 export * from './accessor'
 export * from './types'
 export * from './processor'

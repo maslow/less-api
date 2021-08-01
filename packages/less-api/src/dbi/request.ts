@@ -1,6 +1,6 @@
 import { ActionType } from "../types"
 import { DbConfig } from "."
-import { Entry } from "../entry"
+import { Proxy } from "../proxy"
 
 export class Request {
 
@@ -14,7 +14,7 @@ export class Request {
 
     const { accessor } = this.config
 
-    const params = Entry.parse(action, data)
+    const params = Proxy.parse(action, data)
 
     const ret = await accessor.execute(params)
 

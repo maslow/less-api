@@ -24,7 +24,7 @@ describe('Database update', function () {
   let coll = null
 
   before(async () => {
-    await entry.init()
+    await accessor.init()
 
     // insert data
     coll = accessor.db.collection(COLL_NAME)

@@ -23,7 +23,7 @@ export interface ValidateResult {
 /**
  * Ruler Interface
  */
-export interface RulerInterface {
+export interface PolicyInterface {
   /**
    * collection names in rules
    * @readonly

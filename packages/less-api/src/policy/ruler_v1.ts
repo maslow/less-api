@@ -2,13 +2,13 @@
  * 此文件为v1版本的 Ruler，支持老规则语法，保留此类是为兼容使用老版本的项目。
  */
 import * as assert from 'assert'
-import { Entry } from '../entry'
+import { Proxy } from '../proxy'
 import { Params, getAction, ActionType } from '../types'
 import { Handler, Processor, HandlerContext } from '../processor'
 import * as BUILT_IN_VALIDATORS from '../validators'
 import { AccessorInterface } from '../accessor'
 import { DefaultLogger, LoggerInterface } from '../logger'
-import { PermissionRule, RulerInterface, ValidateError, ValidateResult } from './interface'
+import { PermissionRule, PolicyInterface, ValidateError, ValidateResult } from './interface'
 
 export enum PermissionType {
   READ = '.read',
@@ -34,10 +34,10 @@ interface ValidatorMap {
 }
 
 
-export class Ruler implements RulerInterface {
+export class Ruler implements PolicyInterface {
 
   readonly version: 1
-  private _context: Entry
+  private _context: Proxy
   private _accessor: AccessorInterface
   protected _logger: LoggerInterface
 
@@ -51,7 +51,7 @@ export class Ruler implements RulerInterface {
    */
   private rules: DbRulesTree
 
-  constructor(context?: Entry) {
+  constructor(context?: Proxy) {
     if (context) {
       this.logger.warn('context will be deprecated in future, use Ruler.accessor instead')
       this._context = context

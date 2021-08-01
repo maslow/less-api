@@ -8,6 +8,7 @@
     "test-units": "mocha tests/units/*",
     "test": "npm run test-units",
     "build": "tsc -p tsconfig.json",
+    "watch": "tsc -w",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -27,7 +28,7 @@
   "dependencies": {
     "less-api-database": "^1.5.0",
     "lodash": "^4.17.21",
-    "mongodb": "^3.6.3",
+    "mongodb": "^4.0.1",
     "mysql2": "^2.2.5",
     "validator": "^12.0.0"
   },

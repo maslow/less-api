@@ -2,7 +2,7 @@ const assert = require('assert')
 const { Entry, MongoAccessor } = require('../../dist')
 
 describe('class Entry', () => {
-  const accessor = new MongoAccessor('test-db', 'test-url')
+  const accessor = new MongoAccessor('test-db', 'mongodb://localhost:27017')
 
   it('constructor() ok', () => {
     const entry = new Entry(accessor)

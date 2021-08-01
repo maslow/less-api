@@ -1,21 +1,18 @@
 import { AccessorInterface, ReadResult, UpdateResult, AddResult, RemoveResult, CountResult } from "./accessor"
 import { Params, ActionType, Order, Direction } from '../types'
-import { MongoClient, ObjectID, MongoClientOptions, Db } from 'mongodb'
+import { MongoClient, ObjectId, MongoClientOptions, Db } from 'mongodb'
 import { DefaultLogger, LoggerInterface } from "../logger"
 import { EventEmitter } from "events"
 
 /**
  * Mongodb Accessor 负责执行 mongodb 数据操作
  * 
- * 连接参数同 mongodb javascript driver，参考以下链接：
- * @see https://mongodb.github.io/node-mongodb-native/3.3/reference/connecting/connection-settings/
+ * 连接参数同 mongodb nodejs driver，参考以下链接：
+ * @see https://docs.mongodb.com/manual/reference/connection-string/
  * 
  * 实例化本对象后，须调用 `init()` 待数据库连接成功，方可执行数据操作。
  * ```js
- *  const accessor = new MongoAccessor('dbname', 'mongodb://localhost:27017', {
- *      useNewUrlParser: true,
- *      useUnifiedTopology: true
- *  })
+ *  const accessor = new MongoAccessor('dbname', 'mongodb://localhost:27017', { directConnection: true })
  * 
  *  accessor.init()
  * ```
@@ -64,7 +61,24 @@ export class MongoAccessor implements AccessorInterface {
     }
 
     /**
-     * @see https://mongodb.github.io/node-mongodb-native/3.3/reference/connecting/connection-settings/
+     * Mongodb Accessor 负责执行 mongodb 数据操作
+     * 
+     * 连接参数同 mongodb nodejs driver，参考以下链接：
+     * @see https://docs.mongodb.com/manual/reference/connection-string/
+     * 
+     * 实例化本对象后，须调用 `init()` 待数据库连接成功，方可执行数据操作。
+     * ```js
+     *  const accessor = new MongoAccessor('dbname', 'mongodb://localhost:27017', { directConnection: true })
+     * 
+     *  accessor.init()
+     * ```
+     * 
+     * 可通过 `ready` 属性等待数据库连接就绪，该属性为 `Promise` 对象：
+     * ```js
+     *  accessor.ready.then(() => { 
+     *      // 连接就绪，可进行数据操作
+     *  })
+     * ```
      */
     constructor(db: string, url: string, options?: MongoClientOptions) {
         this.db_name = db
@@ -137,12 +151,12 @@ export class MongoAccessor implements AccessorInterface {
             const q = query ?? {}
 
             if (typeof q._id === 'string') {
-                query._id = new ObjectID(query._id)
+                query._id = new ObjectId(query._id)
                 this.logger.debug(`[${requestId}] mongo process _id -> ObjectID: ` + JSON.stringify(params))
             }
 
             if (q._id && (q._id.$in instanceof Array)) {
-                query._id.$in = query._id.$in.map((id: string) => new ObjectID(id))
+                query._id.$in = query._id.$in.map((id: string) => new ObjectId(id))
                 this.logger.debug(`[${requestId}] mongo process _id -> ObjectID: ` + JSON.stringify(params))
             }
         }
@@ -178,7 +192,7 @@ export class MongoAccessor implements AccessorInterface {
      */
     async get(collection: string, query: any): Promise<any> {
         if (query && query._id) {
-            query._id = new ObjectID(query._id)
+            query._id = new ObjectId(query._id)
         }
         const coll = this.db.collection(collection)
         return await coll.findOne(query)
@@ -221,10 +235,9 @@ export class MongoAccessor implements AccessorInterface {
         const data = await coll.find(query, options).toArray()
         this.logger.debug(`[${requestId}] mongo end of read {${collection}}: `, { query, options, dataLength: data.length })
 
-        const total = await coll.estimatedDocumentCount(query, {})
 
-        this.emitResult(params, { data, total })
-        return { list: data, total, limit: options.limit, offset: options.skip }
+        this.emitResult(params, { data })
+        return { list: data, limit: options.limit, offset: options.skip }
     }
 
     /**

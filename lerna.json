@@ -3,5 +3,16 @@
     "packages/*",
     "examples/*"
   ],
+  "command": {
+    "publish": {
+      "ignoreChanges": [
+        "package-lock.json",
+        "*.md",
+        "tests",
+        "http",
+        "ecosystem.config*"
+      ]
+    }
+  },
   "version": "1.5.5"
 }

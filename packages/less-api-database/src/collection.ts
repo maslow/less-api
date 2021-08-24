@@ -47,7 +47,7 @@ export class CollectionReference extends Query {
    *
    * @param data - 数据
    */
-  add(data: Object, options?: { multi: boolean }, callback?: any): Promise<{ id: string | number, insertedCount: number, requestId: string }>{
+  add(data: Object, options?: { multi: boolean }, callback?: any){
     let docRef = new DocumentReference(this._db, this._coll, undefined)
     return docRef.create(data, options, callback)
   }

@@ -22,6 +22,13 @@ export interface UpdateRes {
   ok: boolean
 }
 
+export interface AddRes {
+  id: string | number,
+  insertedCount: number,
+  requestId: string,
+  ok: boolean
+}
+
 export interface RemoveRes {
   deleted: number,
   requestId: string,

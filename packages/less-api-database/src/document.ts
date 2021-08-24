@@ -5,7 +5,7 @@ import { UpdateSerializer } from './serializer/update'
 import { serialize } from './serializer/datatype'
 import { UpdateCommand } from './commands/update'
 import { QueryType } from './constant'
-import { GetRes } from './result-types'
+import { AddRes, ErrorRes, GetRes, RemoveRes, UpdateRes } from './result-types'
 
 
 /**
@@ -73,7 +73,7 @@ export class DocumentReference {
    * @param data - 文档数据
    * @internal
    */
-  create(data: any, options?: { multi: boolean }, callback?: any): Promise<{ id: string | number, insertedCount: number, requestId: string, ok: boolean } & { code: string | number, error: string }> {
+  create(data: any, options?: { multi: boolean }, callback?: any): Promise<AddRes | ErrorRes> {
     callback = callback || createPromiseCallback()
     if (!options) {
       options = { multi: false }
@@ -121,7 +121,7 @@ export class DocumentReference {
    *
    * @param data - 文档数据
    */
-  set(data: Object, callback?: any): Promise<{ updated: number, matched: number, upsertedId: number, requestId: string } | { code: string, error: string }> {
+  set(data: Object, callback?: any): Promise<UpdateRes | ErrorRes> {
     callback = callback || createPromiseCallback()
 
     if (!this.id) {
@@ -192,7 +192,8 @@ export class DocumentReference {
             updated: res.data.updated,
             matched: res.data.matched,
             upsertedId: res.data.upserted_id,
-            requestId: res.requestId
+            requestId: res.requestId,
+            ok: true
           })
         }
       })
@@ -208,7 +209,7 @@ export class DocumentReference {
    *
    * @param data - 文档数据
    */
-  update(data: Object, callback?: any): Promise<{ updated: number, matched: number, upsertedId: number, requestId: string, ok: boolean } | { code: string, error: string }> {
+  update(data: Object, callback?: any): Promise<UpdateRes | ErrorRes> {
     callback = callback || createPromiseCallback()
 
     if (!data || typeof data !== 'object') {
@@ -263,7 +264,7 @@ export class DocumentReference {
   /**
    * 删除文档
    */
-  remove(callback?: any): Promise<{ deleted: number, requestId: string }> {
+  remove(callback?: any): Promise<RemoveRes | ErrorRes> {
     callback = callback || createPromiseCallback()
 
     const query = { [this.primaryKey]: this.id }
@@ -282,7 +283,8 @@ export class DocumentReference {
         } else {
           callback(0, {
             deleted: res.data.deleted,
-            requestId: res.requestId
+            requestId: res.requestId,
+            ok: true
           })
         }
       })
@@ -296,7 +298,7 @@ export class DocumentReference {
   /**
    * 返回选中的文档
    */
-  get<T = any>(callback?: any): Promise<GetRes<T>> {
+  get<T = any>(callback?: any): Promise<GetRes<T> | ErrorRes> {
     callback = callback || createPromiseCallback()
 
     const query = { [this.primaryKey]: this.id }
@@ -319,7 +321,8 @@ export class DocumentReference {
             requestId: res.requestId,
             total: res.TotalCount,
             limit: res.Limit,
-            offset: res.Offset
+            offset: res.Offset,
+            ok: true
           })
         }
       })

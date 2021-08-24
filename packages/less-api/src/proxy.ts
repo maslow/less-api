@@ -1,5 +1,5 @@
 import { Handler } from './processor'
-import { Ruler as RulerV1 } from './policy/ruler_v1'
+import { Ruler as RulerV1 } from './ruler/ruler_v1'
 import { AccessorInterface } from './accessor/accessor'
 import { Params, ActionType, getAction } from "./types"
 import assert = require('assert')

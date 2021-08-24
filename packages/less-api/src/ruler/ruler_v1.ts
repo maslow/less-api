@@ -8,7 +8,7 @@ import { Handler, Processor, HandlerContext } from '../processor'
 import * as BUILT_IN_VALIDATORS from '../validators'
 import { AccessorInterface } from '../accessor'
 import { DefaultLogger, LoggerInterface } from '../logger'
-import { PermissionRule, PolicyInterface, ValidateError, ValidateResult } from './interface'
+import { PermissionRule, PolicyInterface, ValidateError, ValidateResult } from '../policy/interface'
 
 export enum PermissionType {
   READ = '.read',

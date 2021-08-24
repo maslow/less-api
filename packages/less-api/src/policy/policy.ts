@@ -6,7 +6,7 @@ import * as BUILT_IN_VALIDATORS from '../validators'
 import { AccessorInterface } from '../accessor'
 import { DefaultLogger, LoggerInterface } from '../logger'
 import { PermissionRule, PolicyInterface, ValidateError, ValidateResult } from './interface'
-import { PermissionType as PermissionTypeV1 } from './ruler_v1'
+import { PermissionType as PermissionTypeV1 } from '../ruler/ruler_v1'
 
 /**
  * 访问规则结构： 

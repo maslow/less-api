@@ -3,7 +3,7 @@ import { Db } from 'less-api-database'
 import { Request } from './request/request'
 import { UniRequest } from './request/request-uni'
 import { WxmpRequest } from './request/request-wxmp'
-import { CloudOptions, EnvironmentType, FunctionInvokeResult, RequestInterface, UploadFile } from './types'
+import { CloudOptions, EnvironmentType, RequestInterface, UploadFile } from './types'
 
 
 /**
@@ -57,9 +57,12 @@ class Cloud {
       return ""
     }
 
+    const db_proxy_url = this.resolveDbProxyUrl(config)
+
     this.config = {
       baseUrl: config.baseUrl,
-      entryUrl: this.resolveEntryUrl(config),
+      dbProxyUrl: db_proxy_url,
+      entryUrl: db_proxy_url,
       getAccessToken: config?.getAccessToken || warningFunc,
       environment: config?.environment || EnvironmentType.H5,
       primaryKey: config?.primaryKey,
@@ -67,7 +70,6 @@ class Cloud {
       headers: config?.headers,
       requestClass: config?.requestClass
     }
-
 
     const reqClass = this.requestClass
     this._request = new reqClass(this.config)
@@ -86,9 +88,9 @@ class Cloud {
   /**
    * 调用云函数
    */
-  async invokeFunction<T = any>(functionName: string, data: any, debug = false): Promise<FunctionInvokeResult<T>>{
+  async invokeFunction<T = any>(functionName: string, data: any, debug = false): Promise<T> {
     let url = this.funcBaseUrl + `/invoke/${functionName}`
-    if(debug) {
+    if (debug) {
       url = url + `?debug=true`
     }
     const res = await this
@@ -101,11 +103,11 @@ class Cloud {
   /**
    * 上传文件
    */
-   async uploadFile(file: UploadFile, namepsace = 'public') {
-     const res = await this
+  async uploadFile(file: UploadFile, bucket = 'public') {
+    const res = await this
       ._request
       .upload({
-        url: this.fileBaseUrl + `/upload/${namepsace}`,
+        url: this.fileBaseUrl + `/upload/${bucket}`,
         files: [file]
       })
 
@@ -113,20 +115,25 @@ class Cloud {
   }
 
   /**
-   * 为了兼容 less-api 老版本用法，处理 entry url 为绝对路径
+   * 为了兼容 less-api 老版本用法，处理 db proxy url 为绝对路径
    * @param options 
    * @returns 
    */
-   private resolveEntryUrl(options: CloudOptions) {
-    if(!options.entryUrl) {
-      throw new Error('entryUrl should NOT be empty')
+  private resolveDbProxyUrl(options: CloudOptions) {
+    if (options.entryUrl) {
+      console.warn('DEPRECATED: `entryUrl` is deprecated in future, use `dbProxyUrl` instead')
     }
 
-    if(options.entryUrl?.startsWith('/') && options.baseUrl) {
-      return options.baseUrl + options.entryUrl
-    } 
+    const _url = options.dbProxyUrl ?? options.entryUrl
+    if (!_url) {
+      throw new Error('db proxy url should not be empty')
+    }
 
-    return options.entryUrl
+    if (_url.startsWith('/') && options.baseUrl) {
+      return options.baseUrl + _url
+    }
+
+    return _url
   }
 }
 

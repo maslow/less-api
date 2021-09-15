@@ -18,7 +18,7 @@ type GetAccessTokenFuncType = () => string
 
 export interface CloudOptions {
   /**
-   * less-framework 服务的地址，如： "http://localhost:8080"
+   * LaF 应用服务的地址，如： "http://localhost:8080"
    * @tip 后面不要以 `/` 结尾
    * 
    * 若后端不使用 less-framework 服务，而是自行集成使用 less-api，则无需设置此项，将 less-api 入口地址写入 `entryUrl` 即可
@@ -26,9 +26,14 @@ export interface CloudOptions {
   baseUrl?: string
 
   /**
-   * less-api 数据操作请求的入口地址：
-   * 1. 若不提供 `baseUrl` 则 `entryUrl` 应该为绝对地址，如：`http://localhost:8080/entry`
-   * 2. 若提供 `baseUrl` 则 `entryUrl` 可为相对地址， 如： `/app-entry`，`/admin-entry`
+   * less-api 数据库访问代理的入口地址：
+   * 1. 若不提供 `baseUrl` 则 `dbProxyUrl` 应该为绝对地址，如：`http://localhost:8080/entry`
+   * 2. [推荐]若提供 `baseUrl` 则 `dbProxyUrl` 可为相对地址， 如： `/proxy/app`，`/proxy/admin`
+   */
+  dbProxyUrl?: string,
+
+  /**
+   * `dbProxyUrl` 的别名，为了兼容老版本使用
    */
   entryUrl?: string,
 
@@ -59,7 +64,7 @@ export interface CloudOptions {
    * import { Request } from 'less-api-client'
    * class MyRequest extends Request {
    *  async request(url, data) {
-   *    const res = await super.request(data)
+   *    const res = await super.request(url, data)
    *    // do your own logics
         return res
    *  }
@@ -80,85 +85,55 @@ export interface UploadFileOption {
   /**
    * 开发者服务器 url
    */
-  url: string;
+  url: string
   /**
    * 文件类型，image/video/audio，仅支付宝小程序，且必填。
    * - image: 图像
    * - video: 视频
    * - audio: 音频
    */
-  fileType?: 'image' | 'video' | 'audio';
+  fileType?: 'image' | 'video' | 'audio'
   /**
    * 要上传的文件对象
    */
-  file?: File;
+  file?: File
   /**
    * 要上传文件资源的路径
    */
-  filePath?: string;
+  filePath?: string
   /**
    * 文件对应的 key , 开发者在服务器端通过这个 key 可以获取到文件二进制内容
    */
-  name?: string;
+  name?: string
   /**
    * 需要上传的文件列表。
    */
-  files?: UploadFile[];
+  files?: UploadFile[]
   /**
    * HTTP 请求 Header, header 中不能设置 Referer
    */
-  header?: any;
+  header?: any
   /**
    * HTTP 请求中其他额外的 form data
    */
-  formData?: any;
+  formData?: any
   /**
    * 超时时间，单位 ms
    */
-  timeout?: number;
+  timeout?: number
 }
 
 export interface UploadFile {
   /**
    * multipart 提交时，表单的项目名，默认为 file，如果 name 不填或填的值相同，可能导致服务端读取文件时只能读取到一个文件。
    */
-  name?: string;
+  name?: string
   /**
    * 要上传的文件对象
    */
-  file?: File;
+  file?: File
   /**
    * 要上传文件资源的路径
    */
-  uri?: string;
-}
-
-/**
- * 云函数调用返回的结构
- */
-export interface FunctionInvokeResult<T = any> {
-  /**
-   * 
-   */
-  requestId?: string
-
-  /**
-   * 云函数返回的数据结果
-   */
-  data?: T
-
-  /**
-   * 函数执行耗时，只在调试模式调用才会返回
-   */
-  time_usage?: number
-
-  /**
-   * 函数执行日志，只在调试模式调用才会返回
-   */
-  logs?: any[]
-
-  /**
-   * 调用出错时返回错误
-   */
-  error?: string
+  uri?: string
 }

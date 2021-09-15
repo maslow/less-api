@@ -6,6 +6,7 @@
     "url": "git+https://github.com/Maslow/less-api.git"
   },
   "scripts": {
+    "watch": "lerna run watch --parallel",
     "build": "lerna run build",
     "test": "lerna run test",
     "copy-readme": "npx copy-cli ./README.md ./packages/less-api",

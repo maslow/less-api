@@ -5,6 +5,7 @@
   "main": "dist/commonjs/index.js",
   "module": "dist/esm/index.js",
   "scripts": {
+    "watch": "tsc -w",
     "test": "mocha tests/units/*test.js",
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.esm.json",
     "build:bundle": "webpack",

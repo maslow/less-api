@@ -1,13 +1,13 @@
 {
   "name": "demo-client-mysql",
-  "version": "1.5.8",
+  "version": "1.5.9",
   "private": true,
   "description": "",
   "main": "server.js",
   "dependencies": {
     "express": "^4.17.1",
-    "less-api": "^1.5.8",
-    "less-api-client": "^1.5.8",
+    "less-api": "^1.5.9",
+    "less-api-client": "^1.5.9",
     "log4js": "^6.3.0",
     "uuid": "^8.3.2"
   },

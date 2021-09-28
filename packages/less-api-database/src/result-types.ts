@@ -1,14 +1,8 @@
 
-export interface ErrorRes {
+interface BaseResult {
+  requestId?: string
   code: string | number,
   error?: string
-}
-
-export interface BaseResult extends ErrorRes {
-  requestId?: string
-  total?: number
-  limit?: number
-  offset?: number,
   ok?: boolean
 }
 

@@ -3,12 +3,12 @@ import { SYMBOL_REGEXP } from '../helper/symbol'
 export class RegExp {
   $regex: string;
   $options: string;
-  constructor({ regexp, options }) {
+  constructor({ regexp, options }: { regexp: string, options: string}) {
     if (!regexp) {
       throw new TypeError('regexp must be a string')
     }
     this.$regex = regexp
-    this.$options = options
+    this.$options = options ?? ''
   }
 
   parse() {
@@ -23,6 +23,6 @@ export class RegExp {
   }
 }
 
-export function RegExpConstructor(param) {
+export function RegExpConstructor(param: { regexp: string, options: string}) {
   return new RegExp(param)
 }

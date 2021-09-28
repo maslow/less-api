@@ -6,7 +6,7 @@ import { Util } from './util'
 import { QuerySerializer } from './serializer/query'
 import { UpdateSerializer } from './serializer/update'
 import { ErrorCode } from './constant'
-import { GetOneRes, GetRes, ErrorRes, CountRes, UpdateRes, RemoveRes } from './result-types'
+import { GetOneRes, GetRes, CountRes, UpdateRes, RemoveRes } from './result-types'
 
 
 
@@ -401,7 +401,7 @@ export class Query {
    * - 默认获取集合下全部文档数据
    * - 可以把通过 `orderBy`、`where`、`skip`、`limit`设置的数据添加请求参数上
    */
-  public get<T = any>(options?: { nested?: boolean }, callback?: any): Promise<GetRes<T> & ErrorRes> {
+  public get<T = any>(options?: { nested?: boolean }, callback?: any): Promise<GetRes<T>> {
     /* eslint-disable no-param-reassign */
     callback = callback || createPromiseCallback()
 
@@ -479,7 +479,7 @@ export class Query {
    * @param options 
    * @returns 
    */
-  public async getOne<T = any>(options?: { nested?: boolean }): Promise<GetOneRes<T> & ErrorRes> {
+  public async getOne<T = any>(options?: { nested?: boolean }): Promise<GetOneRes<T>> {
     const res = await this.get<T>(options)
     if (res.code) {
       return res as any
@@ -508,7 +508,7 @@ export class Query {
    * 3. 合并主表 & 子表的结果，即聚合
    * 4. intersection 可指定是否取两个结果集的交集，缺省则以主表结果为主
    */
-  public async merge<T = any>(options?: { nested?: boolean, intersection?: boolean }): Promise<GetRes<T> & ErrorRes> {
+  public async merge<T = any>(options?: { nested?: boolean, intersection?: boolean }): Promise<GetRes<T>> {
 
     options = options ?? {} as any
     const intersection = options.intersection ?? false
@@ -533,7 +533,7 @@ export class Query {
       q._fieldFilters[foreignField] = { '$in': localValues }
 
       // 执行子查询
-      let r_sub: (GetRes<T> & ErrorRes)
+      let r_sub: (GetRes<T>)
       if (q._withs.length) {
         r_sub = await q.merge()  // 如果子查询也使用了 with/withOne，则使用 merge() 查询
       } else {
@@ -584,7 +584,7 @@ export class Query {
   /**
    * 获取总数
    */
-  public count(callback?: any): Promise<CountRes & ErrorRes> {
+  public count(callback?: any): Promise<CountRes> {
     callback = callback || createPromiseCallback()
 
     interface Param {
@@ -623,7 +623,7 @@ export class Query {
    *
    * @param data 数据
    */
-  public update(data: Object, options?: { multi: boolean, merge: boolean, upsert: boolean }, callback?: any): Promise<UpdateRes & ErrorRes> {
+  public update(data: Object, options?: { multi: boolean, merge: boolean, upsert: boolean }, callback?: any): Promise<UpdateRes> {
     callback = callback || createPromiseCallback()
     if (!options) {
       options = {
@@ -687,7 +687,7 @@ export class Query {
   /**
    * 条件删除文档
    */
-  public remove(options?: { multi: boolean }, callback?: any): Promise<RemoveRes & ErrorRes> {
+  public remove(options?: { multi: boolean }, callback?: any): Promise<RemoveRes> {
     callback = callback || createPromiseCallback()
 
     if (!options) {

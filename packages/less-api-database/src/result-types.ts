@@ -1,47 +1,43 @@
 
-export interface GetRes<T> {
-  data: T[]
-  requestId: string
+export interface ErrorRes {
+  code: string | number,
+  error?: string
+}
+
+export interface BaseResult extends ErrorRes {
+  requestId?: string
   total?: number
   limit?: number
   offset?: number,
-  ok: boolean
+  ok?: boolean
 }
 
-export interface GetOneRes<T> {
+export interface GetRes<T> extends BaseResult {
+  data: T[]
+  total?: number
+  limit?: number
+  offset?: number
+}
+
+export interface GetOneRes<T> extends BaseResult{
   data: T
-  requestId: string
-  ok: boolean
 }
 
-export interface UpdateRes {
-  updated: number,
-  matched: number,
-  upsertedId: number,
-  requestId: string,
-  ok: boolean
+export interface UpdateRes extends BaseResult {
+  updated?: number
+  matched?: number
+  upsertedId?: number
 }
 
-export interface AddRes {
-  id: string | number,
-  insertedCount: number,
-  requestId: string,
-  ok: boolean
+export interface AddRes extends BaseResult{
+  id: string | number
+  insertedCount: number
 }
 
-export interface RemoveRes {
-  deleted: number,
-  requestId: string,
-  ok: boolean
+export interface RemoveRes extends BaseResult{
+  deleted: number
 }
 
-export interface CountRes {
-  total: number,
-  requestId: string,
-  ok: boolean
-}
-
-export interface ErrorRes {
-  code?: string | number,
-  error?: string
+export interface CountRes extends BaseResult{
+  total: number
 }

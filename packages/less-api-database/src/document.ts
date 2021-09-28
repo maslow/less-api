@@ -5,7 +5,7 @@ import { UpdateSerializer } from './serializer/update'
 import { serialize } from './serializer/datatype'
 import { UpdateCommand } from './commands/update'
 import { QueryType } from './constant'
-import { AddRes, ErrorRes, GetRes, RemoveRes, UpdateRes } from './result-types'
+import { AddRes, GetRes, RemoveRes, UpdateRes } from './result-types'
 
 
 /**
@@ -73,7 +73,7 @@ export class DocumentReference {
    * @param data - 文档数据
    * @internal
    */
-  create(data: any, options?: { multi: boolean }, callback?: any): Promise<AddRes | ErrorRes> {
+  create(data: any, options?: { multi: boolean }, callback?: any): Promise<AddRes> {
     callback = callback || createPromiseCallback()
     if (!options) {
       options = { multi: false }
@@ -121,7 +121,7 @@ export class DocumentReference {
    *
    * @param data - 文档数据
    */
-  set(data: Object, callback?: any): Promise<UpdateRes | ErrorRes> {
+  set(data: Object, callback?: any): Promise<UpdateRes> {
     callback = callback || createPromiseCallback()
 
     if (!this.id) {
@@ -209,7 +209,7 @@ export class DocumentReference {
    *
    * @param data - 文档数据
    */
-  update(data: Object, callback?: any): Promise<UpdateRes | ErrorRes> {
+  update(data: Object, callback?: any): Promise<UpdateRes> {
     callback = callback || createPromiseCallback()
 
     if (!data || typeof data !== 'object') {
@@ -264,7 +264,7 @@ export class DocumentReference {
   /**
    * 删除文档
    */
-  remove(callback?: any): Promise<RemoveRes | ErrorRes> {
+  remove(callback?: any): Promise<RemoveRes> {
     callback = callback || createPromiseCallback()
 
     const query = { [this.primaryKey]: this.id }
@@ -298,7 +298,7 @@ export class DocumentReference {
   /**
    * 返回选中的文档
    */
-  get<T = any>(callback?: any): Promise<GetRes<T> | ErrorRes> {
+  get<T = any>(callback?: any): Promise<GetRes<T>> {
     callback = callback || createPromiseCallback()
 
     const query = { [this.primaryKey]: this.id }

@@ -36,7 +36,7 @@ export class Db {
    */
   command: typeof Command
 
-  RegExp: any
+  RegExp: typeof RegExpConstructor
 
   serverDate: any
 

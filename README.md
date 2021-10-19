@@ -1,5 +1,10 @@
 ![](https://github.com/Maslow/less-api/workflows/release/badge.svg?branch=v1.0.0)
 
+## Deprecated Warning:
+
+> 本仓库以及 `less-api` 将不再单独维护，`less-api` 现已升级合并到 [`laf`](https://github.com/Maslow/laf) 项目中，并更名为 [`database-proxy`](https://github.com/Maslow/laf/tree/main/packages/database-proxy)。 
+
+
 ## 介绍
 
     `less-api` 是一个「超级API」，一个 API 替代服务端 90% 的传统 APIs。
